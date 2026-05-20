@@ -51,4 +51,4 @@ export function getSession(): Student | null {
   return raw ? JSON.parse(raw) : null;
 }
 
-export const ADMIN_PASSWORD = "admin2024";
+export const ADMIN_PASSWORD = {$Password};
