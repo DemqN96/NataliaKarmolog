@@ -259,78 +259,137 @@ export default function LandingPage() {
 
       {/* ━━━━━━━━━━━━ 8. ЦІНА ━━━━━━━━━━━━ */}
       <section className="py-24" style={{ backgroundColor: "#13110e" }}>
-        <div className="max-w-2xl mx-auto px-6">
+        <div className="max-w-5xl mx-auto px-6">
           <FadeIn>
             <h2 className="text-4xl font-bold text-center mb-3"
               style={{ fontFamily: "var(--font-playfair)", color: "#f5f0e8" }}>
-              Вартість курсу
+              Оберіть свій тариф
             </h2>
-            <p className="text-center mb-12" style={{ color: "#6a5a50" }}>
+            <p className="text-center mb-14" style={{ color: "#6a5a50" }}>
               Одноразова оплата — доступ назавжди
             </p>
           </FadeIn>
 
-          <FadeIn delay={0.1}>
-            <div className="rounded-3xl p-8 md:p-10 relative overflow-hidden"
-              style={{
-                backgroundColor: "#1a1612",
-                border: "1px solid rgba(201,168,76,0.3)",
-                boxShadow: "0 0 60px rgba(201,168,76,0.06), 0 30px 60px rgba(0,0,0,0.4)",
-              }}>
-              {/* Glow */}
-              <div className="absolute -top-10 left-1/2 -translate-x-1/2 w-48 h-48 rounded-full pointer-events-none"
-                style={{ background: "radial-gradient(circle, rgba(201,168,76,0.15), transparent 70%)" }} />
+          <div className="grid md:grid-cols-2 gap-6 items-start">
 
-              <div className="relative">
-                {/* Badge */}
-                <div className="inline-block px-3 py-1 rounded-full text-xs uppercase tracking-widest mb-6"
-                  style={{ backgroundColor: "rgba(201,168,76,0.1)", border: "1px solid rgba(201,168,76,0.25)", color: "#c9a84c" }}>
-                  Повний доступ
+            {/* ── Тариф Самостійний ── */}
+            <FadeIn delay={0.1}>
+              <div className="rounded-3xl p-8 relative overflow-hidden h-full flex flex-col"
+                style={{ backgroundColor: "#1a1612", border: "1px solid #2a2420" }}>
+                <div className="inline-block px-3 py-1 rounded-full text-xs uppercase tracking-widest mb-6 self-start"
+                  style={{ backgroundColor: "#1e1a16", border: "1px solid #3a3420", color: "#7a6a60" }}>
+                  Самостійний
+                </div>
+                <h3 className="text-2xl font-bold mb-1" style={{ fontFamily: "var(--font-playfair)" }}>
+                  Стан Достатку
+                </h3>
+                <p className="text-sm mb-6" style={{ color: "#6a5a50" }}>Самостійне проходження</p>
+
+                <div className="mb-8">
+                  <span className="text-4xl font-bold" style={{ fontFamily: "var(--font-playfair)", color: "#f5f0e8" }}>
+                    7 000
+                  </span>
+                  <span className="text-lg ml-1" style={{ color: "#6a5a50" }}>грн</span>
                 </div>
 
-                <h3 className="text-2xl font-bold mb-2" style={{ fontFamily: "var(--font-playfair)" }}>
-                  Онлайн-курс «Стан Достатку»
-                </h3>
-                <p className="text-sm mb-8" style={{ color: "#6a5a50" }}>
-                  Авторський курс Наталії Войтович
-                </p>
-
-                {/* What's included */}
-                <ul className="space-y-3 mb-8">
+                <ul className="space-y-3 mb-8 flex-1">
                   {[
-                    "9+ відео-уроків у закритому кабінеті",
-                    "Матеріали по 8 блоках курсу",
-                    "Практики та завдання після кожного уроку",
+                    "Всі уроки та матеріали (13 блоків)",
+                    "Закритий кабінет з відео",
                     "Нотатник з автозбереженням",
-                    "Доступ назавжди з будь-якого пристрою",
-                    "Сертифікат після завершення курсу",
+                    "Сертифікат після завершення",
+                    "Доступ назавжди",
                   ].map((item) => (
-                    <li key={item} className="flex items-center gap-3">
-                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#c9a84c" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                    <li key={item} className="flex items-start gap-3">
+                      <svg className="flex-shrink-0 mt-0.5" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#6a5a50" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                         <polyline points="20 6 9 17 4 12"/>
                       </svg>
-                      <span className="text-sm" style={{ color: "#c9b8a8" }}>{item}</span>
+                      <span className="text-sm" style={{ color: "#a09080" }}>{item}</span>
                     </li>
                   ))}
                 </ul>
 
-                {/* Divider */}
-                <div className="h-px mb-8" style={{ background: "linear-gradient(90deg, transparent, #2a2420, transparent)" }} />
+                <a href={PAYMENT_URL} target="_blank" rel="noopener noreferrer">
+                  <button className="w-full py-4 rounded-xl text-sm font-semibold transition-all hover:opacity-80"
+                    style={{ backgroundColor: "#201a0a", border: "1px solid rgba(201,168,76,0.3)", color: "#c9a84c" }}>
+                    Придбати →
+                  </button>
+                </a>
+              </div>
+            </FadeIn>
 
-                {/* CTA */}
-                <div className="flex flex-col sm:flex-row items-center gap-5">
-                  <a href={PAYMENT_URL} target="_blank" rel="noopener noreferrer" className="w-full sm:w-auto">
-                    <button className="btn-gold w-full text-base px-10 py-4">
-                      Придбати курс →
+            {/* ── Тариф PLUS ── */}
+            <FadeIn delay={0.2}>
+              <div className="rounded-3xl p-8 relative overflow-hidden h-full flex flex-col"
+                style={{
+                  backgroundColor: "#1e1a0e",
+                  border: "1px solid rgba(201,168,76,0.4)",
+                  boxShadow: "0 0 60px rgba(201,168,76,0.08), 0 24px 50px rgba(0,0,0,0.5)",
+                }}>
+                {/* Glow */}
+                <div className="absolute -top-12 -right-12 w-48 h-48 rounded-full pointer-events-none"
+                  style={{ background: "radial-gradient(circle, rgba(201,168,76,0.18), transparent 70%)" }} />
+
+                <div className="relative">
+                  <div className="flex items-center gap-2 mb-6">
+                    <div className="inline-block px-3 py-1 rounded-full text-xs uppercase tracking-widest"
+                      style={{ backgroundColor: "rgba(201,168,76,0.15)", border: "1px solid rgba(201,168,76,0.35)", color: "#c9a84c" }}>
+                      PLUS
+                    </div>
+                    <div className="inline-block px-2 py-1 rounded-full text-[10px] uppercase tracking-wider"
+                      style={{ backgroundColor: "rgba(201,168,76,0.08)", color: "#c9a84c" }}>
+                      ✦ Рекомендований
+                    </div>
+                  </div>
+
+                  <h3 className="text-2xl font-bold mb-1" style={{ fontFamily: "var(--font-playfair)" }}>
+                    Стан Достатку
+                  </h3>
+                  <p className="text-sm mb-6" style={{ color: "#6a5a50" }}>З підтримкою та спільнотою</p>
+
+                  <div className="mb-8">
+                    <span className="text-4xl font-bold" style={{ fontFamily: "var(--font-playfair)", color: "#c9a84c" }}>
+                      11 000
+                    </span>
+                    <span className="text-lg ml-1" style={{ color: "#6a5a50" }}>грн</span>
+                  </div>
+
+                  <ul className="space-y-3 mb-8 flex-1">
+                    {[
+                      { text: "Всі уроки та матеріали (13 блоків)", plus: false },
+                      { text: "Закритий кабінет з відео", plus: false },
+                      { text: "Нотатник з автозбереженням", plus: false },
+                      { text: "Сертифікат після завершення", plus: false },
+                      { text: "Доступ назавжди", plus: false },
+                      { text: "Жива online зустріч — мастермайнд", plus: true },
+                      { text: "Чат з учасниками курсу", plus: true },
+                      { text: "Відповіді на питання особисто від Наталії", plus: true },
+                    ].map((item) => (
+                      <li key={item.text} className="flex items-start gap-3">
+                        <svg className="flex-shrink-0 mt-0.5" width="15" height="15" viewBox="0 0 24 24" fill="none"
+                          stroke={item.plus ? "#c9a84c" : "#6a5a50"} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                          <polyline points="20 6 9 17 4 12"/>
+                        </svg>
+                        <span className="text-sm" style={{ color: item.plus ? "#f5f0e8" : "#a09080" }}>
+                          {item.plus && <span style={{ color: "#c9a84c" }}>+</span>} {item.text}
+                        </span>
+                      </li>
+                    ))}
+                  </ul>
+
+                  <a href={PAYMENT_URL} target="_blank" rel="noopener noreferrer">
+                    <button className="btn-gold w-full text-base py-4">
+                      Придбати PLUS →
                     </button>
                   </a>
+                  <p className="text-xs mt-3 text-center" style={{ color: "#3a2a20" }}>
+                    Безпечна оплата · Миттєвий доступ після підтвердження
+                  </p>
                 </div>
-                <p className="text-xs mt-4" style={{ color: "#3a2a20" }}>
-                  Безпечна оплата · Миттєвий доступ після підтвердження
-                </p>
               </div>
-            </div>
-          </FadeIn>
+            </FadeIn>
+
+          </div>
         </div>
       </section>
 
