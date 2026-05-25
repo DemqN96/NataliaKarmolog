@@ -15,12 +15,24 @@ export default function LessonPage() {
   const [lesson, setLesson] = useState<Lesson | null>(null);
   const [lessons, setLessons] = useState<Lesson[]>([]);
 
+  // Scroll progress
+  const [scrollProgress, setScrollProgress] = useState(0);
+  useEffect(() => {
+    const onScroll = () => {
+      const total = document.body.scrollHeight - window.innerHeight;
+      if (total > 0) setScrollProgress(window.scrollY / total);
+    };
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
+
   // Audio state
   const audioRef = useRef<HTMLAudioElement>(null);
   const [isPlaying, setIsPlaying] = useState(false);
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(0);
   const [volume, setVolume] = useState(1);
+  const [speed, setSpeed] = useState<1 | 1.5 | 2>(1);
   const [audioError, setAudioError] = useState(false);
 
   // Notes state
@@ -62,6 +74,12 @@ export default function LessonPage() {
     setIsPlaying(!isPlaying);
   };
 
+  const cycleSpeed = () => {
+    const next = speed === 1 ? 1.5 : speed === 1.5 ? 2 : 1;
+    setSpeed(next);
+    if (audioRef.current) audioRef.current.playbackRate = next;
+  };
+
   const handleSeek = (e: React.ChangeEvent<HTMLInputElement>) => {
     const audio = audioRef.current;
     if (!audio) return;
@@ -95,12 +113,20 @@ export default function LessonPage() {
 
       {/* Header */}
       <motion.header
-        className="flex items-center justify-between px-6 py-4 sticky top-0 z-50"
+        className="flex items-center justify-between px-6 py-4 sticky top-0 z-50 relative"
         style={{ borderBottom: "1px solid #1e1a16", backgroundColor: "rgba(15,13,10,0.9)", backdropFilter: "blur(12px)" }}
         initial={{ y: -60, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
         transition={{ duration: 0.5 }}
       >
+        {/* Reading progress line */}
+        <div
+          className="absolute bottom-0 left-0 h-[2px] transition-none"
+          style={{
+            width: `${scrollProgress * 100}%`,
+            background: "linear-gradient(90deg, #c9a84c, #f0d080)",
+          }}
+        />
         <Link href="/dashboard">
           <button className="flex items-center gap-2 text-sm transition-opacity hover:opacity-70"
             style={{ color: "#a09080" }}>
@@ -236,6 +262,23 @@ export default function LessonPage() {
                   style={{ accentColor: "#c9a84c" }}
                 />
               </div>
+
+              {/* Speed */}
+              <button
+                onClick={cycleSpeed}
+                className="hidden sm:flex items-center justify-center px-3 py-1.5 rounded-lg text-xs font-bold flex-shrink-0 transition-all"
+                style={{
+                  backgroundColor: "rgba(201,168,76,0.08)",
+                  border: "1px solid rgba(201,168,76,0.2)",
+                  color: "#c9a84c",
+                  minWidth: "2.5rem",
+                }}
+                title="Швидкість відтворення"
+              >
+                <motion.span key={speed} initial={{ opacity: 0, y: -3 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.15 }}>
+                  {speed}x
+                </motion.span>
+              </button>
             </div>
           </motion.div>
         )}

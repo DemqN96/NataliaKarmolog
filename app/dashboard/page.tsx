@@ -65,35 +65,66 @@ export default function DashboardPage() {
           <h2 className="text-3xl font-bold mb-1" style={{ fontFamily: "var(--font-playfair)" }}>
             Вітаємо, {student.name}! 👋
           </h2>
-          <p className="text-sm" style={{ color: "#7a6a60" }}>
+          <p className="text-sm" style={{ color: "#6a5a50" }}>
             {dayNum < 0
-              ? "Курс ще не розпочався"
-              : `День навчання: `}
-            {dayNum >= 0 && <span style={{ color: "#c9a84c" }}>{dayNum + 1}</span>}
+              ? "Курс ще не розпочався — зовсім скоро!"
+              : `День ${dayNum + 1} — продовжуйте, ви на правильному шляху ✦`}
           </p>
         </motion.div>
 
         {/* Progress card */}
         <motion.div
-          className="rounded-2xl p-5 mb-8"
+          className="rounded-2xl p-5 mb-8 flex items-center gap-6"
           style={{ backgroundColor: "#1a1612", border: "1px solid #2a2420" }}
           initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, delay: 0.2 }}
         >
-          <div className="flex justify-between text-sm mb-3">
-            <span style={{ color: "#d4c9b8" }}>Прогрес курсу</span>
-            <span style={{ color: "#c9a84c", fontWeight: 600 }}>
-              {unlockedCount} / {lessons.length} уроків
-            </span>
+          {/* SVG Ring */}
+          <div className="flex-shrink-0 relative">
+            <svg width="110" height="110" viewBox="0 0 120 120">
+              {/* Track */}
+              <circle cx="60" cy="60" r="52" fill="none" stroke="#2a2420" strokeWidth="7" />
+              {/* Progress arc */}
+              <g transform="rotate(-90 60 60)">
+                <motion.circle
+                  cx="60" cy="60" r="52"
+                  fill="none"
+                  stroke="url(#ringGold)"
+                  strokeWidth="7"
+                  strokeLinecap="round"
+                  initial={{ pathLength: 0 }}
+                  animate={{ pathLength: progress / 100 }}
+                  transition={{ duration: 1.3, delay: 0.5, ease: "easeOut" as const }}
+                />
+              </g>
+              <defs>
+                <linearGradient id="ringGold" x1="0%" y1="0%" x2="100%" y2="0%">
+                  <stop offset="0%" stopColor="#c9a84c" />
+                  <stop offset="100%" stopColor="#f0d080" />
+                </linearGradient>
+              </defs>
+            </svg>
+            {/* Center text */}
+            <div className="absolute inset-0 flex flex-col items-center justify-center">
+              <span className="text-xl font-bold" style={{ color: "#c9a84c", fontFamily: "var(--font-playfair)" }}>
+                {Math.round(progress)}%
+              </span>
+              <span className="text-[10px]" style={{ color: "#4a3a30" }}>завершено</span>
+            </div>
           </div>
-          <div className="w-full rounded-full h-2" style={{ backgroundColor: "#2a2420" }}>
-            <motion.div
-              className="h-2 rounded-full"
-              style={{ background: "linear-gradient(90deg, #c9a84c, #f0d080)" }}
-              initial={{ width: 0 }}
-              animate={{ width: `${progress}%` }}
-              transition={{ duration: 1, delay: 0.5, ease: "easeOut" }}
-            />
+
+          {/* Text info */}
+          <div>
+            <p className="text-sm font-medium mb-1" style={{ color: "#d4c9b8" }}>Прогрес курсу</p>
+            <p className="text-2xl font-bold mb-0.5" style={{ color: "#c9a84c", fontFamily: "var(--font-playfair)" }}>
+              {unlockedCount} <span className="text-base font-normal" style={{ color: "#4a3a30" }}>/ {lessons.length}</span>
+            </p>
+            <p className="text-xs" style={{ color: "#6a5a50" }}>уроків відкрито</p>
+            {dayNum >= 0 && (
+              <p className="text-xs mt-2" style={{ color: "#4a3a30" }}>
+                ✦ День навчання <span style={{ color: "#c9a84c" }}>{dayNum + 1}</span>
+              </p>
+            )}
           </div>
         </motion.div>
 
@@ -122,14 +153,15 @@ export default function DashboardPage() {
 
 function LessonCard({ lesson, unlocked, idx }: { lesson: Lesson; unlocked: boolean; idx: number }) {
   const router = useRouter();
+  const num = String(idx + 1).padStart(2, "0");
 
   return (
     <motion.div
-      className="rounded-2xl flex items-center gap-4 p-5 cursor-pointer"
+      className="rounded-2xl flex items-center gap-4 p-4 cursor-pointer"
       style={{
         backgroundColor: "#1a1612",
         border: `1px solid ${unlocked ? "#2a2010" : "#1e1a16"}`,
-        opacity: unlocked ? 1 : 0.55,
+        opacity: unlocked ? 1 : 0.5,
       }}
       whileHover={unlocked ? {
         scale: 1.01,
@@ -140,42 +172,75 @@ function LessonCard({ lesson, unlocked, idx }: { lesson: Lesson; unlocked: boole
       transition={{ duration: 0.2 }}
       onClick={() => unlocked && router.push(`/lesson/${lesson.id}`)}
     >
-      {/* Icon */}
+      {/* Number */}
+      <span
+        className="text-xs font-bold w-7 text-center flex-shrink-0"
+        style={{ color: unlocked ? "#6a5a50" : "#2a2420", fontFamily: "var(--font-playfair)" }}
+      >
+        {num}
+      </span>
+
+      {/* Play/Lock icon */}
       <motion.div
-        className="w-12 h-12 rounded-full flex items-center justify-center flex-shrink-0 text-lg"
+        className="w-11 h-11 rounded-full flex items-center justify-center flex-shrink-0 text-base"
         style={{
-          backgroundColor: unlocked ? "#201a08" : "#1a1612",
-          border: `2px solid ${unlocked ? "#c9a84c" : "#3a3430"}`,
+          backgroundColor: unlocked ? "#201a08" : "#16120e",
+          border: `1.5px solid ${unlocked ? "#c9a84c" : "#2a2420"}`,
         }}
         whileHover={unlocked ? { scale: 1.1, rotate: 5 } : {}}
         transition={{ duration: 0.2 }}
       >
-        {unlocked ? "▶" : "🔒"}
+        {unlocked ? (
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="#c9a84c"><polygon points="5,3 19,12 5,21"/></svg>
+        ) : (
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#3a3430" strokeWidth="2" strokeLinecap="round">
+            <rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+          </svg>
+        )}
       </motion.div>
 
       {/* Info */}
       <div className="flex-1 min-w-0">
-        <p className="text-xs uppercase tracking-wider mb-0.5" style={{ color: "#c9a84c" }}>
-          {lesson.block}
-        </p>
-        <h3 className="font-semibold text-sm" style={{
-          color: unlocked ? "#f5f0e8" : "#4a3a30",
+        <div className="flex items-center gap-2 mb-0.5">
+          <span
+            className="inline-block px-2 py-0.5 rounded text-[10px] uppercase tracking-wider"
+            style={{
+              backgroundColor: unlocked ? "rgba(201,168,76,0.1)" : "rgba(42,36,32,0.5)",
+              border: `1px solid ${unlocked ? "rgba(201,168,76,0.2)" : "#2a2420"}`,
+              color: unlocked ? "#c9a84c" : "#3a2a20",
+            }}
+          >
+            {lesson.block}
+          </span>
+        </div>
+        <h3 className="font-semibold text-sm leading-tight" style={{
+          color: unlocked ? "#f5f0e8" : "#3a2a20",
           fontFamily: "var(--font-playfair)",
         }}>
           {lesson.title}
         </h3>
-        <p className="text-xs mt-0.5 truncate" style={{ color: "#5a4a40" }}>
+        <p className="text-xs mt-0.5 truncate" style={{ color: "#4a3a30" }}>
           {lesson.description}
         </p>
       </div>
 
       {/* Right */}
-      <div className="text-right flex-shrink-0">
-        <p className="text-xs" style={{ color: "#7a6a60" }}>{lesson.duration}</p>
+      <div className="flex flex-col items-end gap-1.5 flex-shrink-0">
+        {lesson.duration && (
+          <span
+            className="flex items-center gap-1 px-2 py-1 rounded-lg text-xs"
+            style={{ backgroundColor: "#16120e", border: "1px solid #2a2420", color: "#5a4a40" }}
+          >
+            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#5a4a40" strokeWidth="2">
+              <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
+            </svg>
+            {lesson.duration}
+          </span>
+        )}
         {unlocked ? (
-          <p className="text-xs mt-1 font-medium" style={{ color: "#c9a84c" }}>Дивитись →</p>
+          <p className="text-xs font-medium" style={{ color: "#c9a84c" }}>Дивитись →</p>
         ) : (
-          <p className="text-xs mt-1" style={{ color: "#3a2a20" }}>День {lesson.day + 1}</p>
+          <p className="text-xs" style={{ color: "#2a2420" }}>День {lesson.day + 1}</p>
         )}
       </div>
     </motion.div>

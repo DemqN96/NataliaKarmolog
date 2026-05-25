@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Playfair_Display, Inter } from "next/font/google";
 import "./globals.css";
+import ScrollToTop from "@/components/ScrollToTop";
 
 const playfair = Playfair_Display({
   subsets: ["latin", "cyrillic"],
@@ -26,7 +27,10 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="uk" className={`h-full ${playfair.variable} ${inter.variable}`}>
-      <body className="min-h-full flex flex-col">{children}</body>
+      <body className="min-h-full flex flex-col">
+        {children}
+        <ScrollToTop />
+      </body>
     </html>
   );
 }

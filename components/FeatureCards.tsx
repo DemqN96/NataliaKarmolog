@@ -22,7 +22,7 @@ const item = {
 export default function FeatureCards() {
   return (
     <motion.div
-      className="grid md:grid-cols-3 gap-5"
+      className="grid md:grid-cols-2 lg:grid-cols-4 gap-5"
       variants={container}
       initial="hidden"
       whileInView="show"

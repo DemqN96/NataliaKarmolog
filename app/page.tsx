@@ -4,6 +4,9 @@ import FadeIn from "@/components/FadeIn";
 import GoldParticles from "@/components/GoldParticles";
 import FeatureCards from "@/components/FeatureCards";
 import ProgramSection from "@/components/ProgramSection";
+import FaqSection from "@/components/FaqSection";
+import CountUpBadge from "@/components/CountUp";
+import Testimonials from "@/components/Testimonials";
 
 const PAYMENT_URL =
   "https://secure.wayforpay.com/payment/sdf85981b9e62?utm_source=ig&utm_medium=social&utm_content=link_in_bio&fbclid=PAZXh0bgNhZW0CMTEAc3J0YwZhcHBfaWQPOTM2NjE5NzQzMzkyNDU5AAGnlZxmORhJR3MGoc36sFiIv8O_Mz1CV2qzCNgFV_CFUkw8M-ZIY3QHSiEwGI4_aem_MC1ptsSCKkq7GHuXuDyKUw";
@@ -76,15 +79,13 @@ export default function LandingPage() {
                 style={{ border: "1px solid rgba(201,168,76,0.25)", boxShadow: "0 30px 80px rgba(0,0,0,0.6)" }}
               />
               {/* Badge */}
-              <div className="absolute -bottom-4 -left-4 rounded-2xl px-5 py-3"
-                style={{ backgroundColor: "#1a1612", border: "1px solid rgba(201,168,76,0.3)", boxShadow: "0 8px 30px rgba(0,0,0,0.4)" }}>
-                <p className="text-xs mb-0.5" style={{ color: "#7a6a60" }}>Учасників курсу</p>
-                <p className="text-2xl font-bold" style={{ color: "#c9a84c", fontFamily: "var(--font-playfair)" }}>500+</p>
-              </div>
+              <CountUpBadge target={500} suffix="+" label="Учасників курсу" />
             </div>
           </FadeIn>
         </div>
       </section>
+
+      <hr className="section-divider" />
 
       {/* ━━━━━━━━━━━━ 2. ДЛЯ КОГО ━━━━━━━━━━━━ */}
       <section className="py-24" style={{ backgroundColor: "#13110e" }}>
@@ -234,7 +235,14 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* ━━━━━━━━━━━━ 7. CTA ━━━━━━━━━━━━ */}
+      <hr className="section-divider" />
+
+      {/* ━━━━━━━━━━━━ 7. ВІДГУКИ ━━━━━━━━━━━━ */}
+      <Testimonials />
+
+      <hr className="section-divider" />
+
+      {/* ━━━━━━━━━━━━ 8. CTA ━━━━━━━━━━━━ */}
       <section className="py-24 relative overflow-hidden">
         <GoldParticles />
         <div className="absolute inset-0 pointer-events-none"
@@ -274,27 +282,7 @@ export default function LandingPage() {
               Часті запитання
             </h2>
           </FadeIn>
-          <div className="space-y-3">
-            {[
-              { q: "Скільки часу потрібно на курс?", a: "Кожен урок займає 20-40 хвилин. Нові уроки відкриваються щодня, тому ви рухаєтесь у власному темпі без поспіху." },
-              { q: "Чи підходить курс, якщо я нічого не знаю про кармологію?", a: "Так, курс розроблений з нуля. Наталія пояснює все простою мовою без езотерики — тільки практичні інструменти." },
-              { q: "На скільки днів розрахований курс?", a: "Курс включає декілька блоків з уроками. Кожен урок відкривається у визначений день після початку навчання." },
-              { q: "Що якщо я пропущу день?", a: "Нічого страшного — уроки зберігаються і доступні для перегляду в будь-який час після відкриття." },
-              { q: "Як отримати доступ після оплати?", a: "Після оплати напишіть нам, ми надамо вам email та пароль для входу на платформу протягом кількох годин." },
-            ].map((item, i) => (
-              <FadeIn key={i} delay={i * 0.06}>
-                <details className="rounded-2xl group"
-                  style={{ backgroundColor: "#1a1612", border: "1px solid #2a2420" }}>
-                  <summary className="flex justify-between items-center p-5 cursor-pointer list-none">
-                    <span className="font-medium text-sm pr-4" style={{ color: "#f5f0e8" }}>{item.q}</span>
-                    <span className="text-lg flex-shrink-0 transition-transform group-open:rotate-45"
-                      style={{ color: "#c9a84c" }}>+</span>
-                  </summary>
-                  <p className="px-5 pb-5 text-sm leading-relaxed" style={{ color: "#7a6a60" }}>{item.a}</p>
-                </details>
-              </FadeIn>
-            ))}
-          </div>
+          <FaqSection />
         </div>
       </section>
 
