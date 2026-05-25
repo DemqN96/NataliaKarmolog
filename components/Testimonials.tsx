@@ -5,25 +5,32 @@ import FadeIn from "./FadeIn";
 
 const reviews = [
   {
-    initials: "ОМ",
-    name: "Оксана М.",
-    role: "Підприємець",
+    initials: "ВК",
+    name: "Вікторія Кемпа",
+    role: "Учасниця курсу",
     quote:
-      "Після першого блоку я вже відчула, як знімаються старі страхи навколо грошей. Це не просто курс — це справжня трансформація.",
+      "Я дякую тому дню, коли дізналася про Наталію, підписалася і придбала цей фантастичний курс. Дякую за чітку та зрозумілу подачу інформації. Ви змінюєте життя людей на краще!",
   },
   {
-    initials: "ІЛ",
-    name: "Ірина Л.",
-    role: "Маркетолог",
+    initials: "АН",
+    name: "Анонімно",
+    role: "Учасниця курсу",
     quote:
-      "Техніки роботи з підсвідомим реально працюють. За кілька тижнів після курсу мій дохід суттєво виріс. Рекомендую від усього серця!",
+      "Дякуємо, це відчувається у кожному уроці 🤍 Ви вклали величезну частинку своєї мудрої душі! І я ще раз собі дякую, що послухала свою інтуїцію і пішла навчатись до вас.",
   },
   {
-    initials: "МВ",
-    name: "Марина В.",
-    role: "Мама двох дітей",
+    initials: "АН",
+    name: "Анонімно",
+    role: "Учасниця курсу",
     quote:
-      "Наталія пояснює складні речі так просто і з серцем. Я нарешті зрозуміла, чому гроші «не тримаються». Дякую за цей курс!",
+      "Наші відносини з батьком — це просто диво. Після зміни мого відношення він «став іншим»: спокійним, мирним. Це не передати словами. Цей курс — це просто мега. Я вже окупила його тричі… або й сотні раз.",
+  },
+  {
+    initials: "АН",
+    name: "Анонімно",
+    role: "Учасниця курсу",
+    quote:
+      "Слухаю останній урок і кожні 3 хв сиджу з таким обличчям 🗿 Урок максимально роздупляючий, дійсно на вагу золота. Курс про гроші виявився курсом про життя!",
   },
 ];
 
@@ -32,9 +39,9 @@ const container = {
   show: { transition: { staggerChildren: 0.12, delayChildren: 0.1 } },
 };
 
-const item = {
+const item: Variants = {
   hidden: { opacity: 0, y: 28 },
-  show: { opacity: 1, y: 0, transition: { duration: 0.55, ease: "easeOut" as const } },
+  show: { opacity: 1, y: 0, transition: { duration: 0.55, ease: "easeOut" } },
 };
 
 export default function Testimonials() {
@@ -44,31 +51,33 @@ export default function Testimonials() {
         <FadeIn>
           <h2 className="text-4xl font-bold text-center mb-3"
             style={{ fontFamily: "var(--font-playfair)", color: "#f5f0e8" }}>
-            Відгуки учасників
+            Що кажуть учасниці
           </h2>
           <p className="text-center mb-12" style={{ color: "#6a5a50" }}>
-            Реальні результати людей, які вже пройшли курс
+            Реальні відгуки людей, які вже проходять курс
           </p>
         </FadeIn>
 
-        {/* Desktop grid / Mobile horizontal scroll */}
+        {/* Desktop: 2x2 grid */}
         <motion.div
-          className="hidden md:grid md:grid-cols-3 gap-5"
+          className="hidden md:grid md:grid-cols-2 gap-5"
           variants={container}
           initial="hidden"
           whileInView="show"
           viewport={{ once: true, margin: "-60px" }}
         >
-          {reviews.map((r) => (
-            <ReviewCard key={r.name} r={r} variants={item} />
+          {reviews.map((r, i) => (
+            <ReviewCard key={i} r={r} variants={item} />
           ))}
         </motion.div>
 
-        {/* Mobile scroll */}
-        <div className="flex md:hidden gap-4 overflow-x-auto pb-4 snap-x snap-mandatory"
-          style={{ WebkitOverflowScrolling: "touch" } as React.CSSProperties}>
-          {reviews.map((r) => (
-            <div key={r.name} className="snap-start flex-shrink-0 w-[82vw]">
+        {/* Mobile: horizontal scroll */}
+        <div
+          className="flex md:hidden gap-4 overflow-x-auto pb-4 snap-x snap-mandatory"
+          style={{ WebkitOverflowScrolling: "touch" } as React.CSSProperties}
+        >
+          {reviews.map((r, i) => (
+            <div key={i} className="snap-start flex-shrink-0 w-[82vw]">
               <ReviewCard r={r} />
             </div>
           ))}
@@ -82,30 +91,11 @@ function ReviewCard({ r, variants }: { r: typeof reviews[0]; variants?: Variants
   return (
     <motion.div
       variants={variants}
-      whileHover={{ y: -5, borderColor: "rgba(201,168,76,0.35)" }}
+      whileHover={{ y: -4, borderColor: "rgba(201,168,76,0.35)" }}
       transition={{ duration: 0.2 }}
-      className="rounded-2xl p-6 flex flex-col gap-4 h-full"
+      className="rounded-2xl p-6 flex flex-col gap-4"
       style={{ backgroundColor: "#1a1612", border: "1px solid #2a2420" }}
     >
-      {/* Avatar + name */}
-      <div className="flex items-center gap-3">
-        <div
-          className="w-11 h-11 rounded-full flex items-center justify-center text-sm font-bold flex-shrink-0"
-          style={{
-            backgroundColor: "rgba(201,168,76,0.1)",
-            border: "1px solid rgba(201,168,76,0.3)",
-            color: "#c9a84c",
-            fontFamily: "var(--font-playfair)",
-          }}
-        >
-          {r.initials}
-        </div>
-        <div>
-          <p className="font-semibold text-sm" style={{ color: "#f5f0e8" }}>{r.name}</p>
-          <p className="text-xs" style={{ color: "#6a5a50" }}>{r.role}</p>
-        </div>
-      </div>
-
       {/* Stars */}
       <div className="flex gap-0.5">
         {Array.from({ length: 5 }).map((_, i) => (
@@ -114,9 +104,32 @@ function ReviewCard({ r, variants }: { r: typeof reviews[0]; variants?: Variants
       </div>
 
       {/* Quote */}
-      <p className="text-sm leading-relaxed italic flex-1" style={{ color: "#a09080" }}>
+      <p className="text-sm leading-relaxed flex-1" style={{ color: "#c9b8a8" }}>
         «{r.quote}»
       </p>
+
+      {/* Author */}
+      <div className="flex items-center gap-3 pt-2" style={{ borderTop: "1px solid #2a2420" }}>
+        <div
+          className="w-9 h-9 rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0"
+          style={{
+            backgroundColor: "rgba(201,168,76,0.1)",
+            border: "1px solid rgba(201,168,76,0.25)",
+            color: "#c9a84c",
+            fontFamily: "var(--font-playfair)",
+          }}
+        >
+          {r.initials === "АН" ? (
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#c9a84c" strokeWidth="1.5">
+              <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>
+            </svg>
+          ) : r.initials}
+        </div>
+        <div>
+          <p className="text-sm font-medium" style={{ color: "#d4c9b8" }}>{r.name}</p>
+          <p className="text-xs" style={{ color: "#4a3a30" }}>{r.role}</p>
+        </div>
+      </div>
     </motion.div>
   );
 }
