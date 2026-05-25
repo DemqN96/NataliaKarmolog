@@ -65,7 +65,18 @@ export default function DashboardPage() {
             Стан <span style={{ color: "#c9a84c" }}>Достатку</span>
           </h1>
         </Link>
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-3">
+          <Link href="/profile">
+            <div className="w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold cursor-pointer transition-all hover:scale-105"
+              style={{
+                background: "rgba(201,168,76,0.1)",
+                border: "1px solid rgba(201,168,76,0.25)",
+                color: "#c9a84c",
+                fontFamily: "var(--font-playfair)",
+              }}>
+              {student.name.charAt(0).toUpperCase()}
+            </div>
+          </Link>
           <span className="text-sm hidden sm:block" style={{ color: "#7a6a60" }}>{student.name}</span>
           <button onClick={handleLogout}
             className="text-sm px-4 py-2 rounded-lg transition-all hover:opacity-70"

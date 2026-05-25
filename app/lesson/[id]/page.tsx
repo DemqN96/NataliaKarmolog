@@ -147,6 +147,68 @@ export default function LessonPage() {
         </motion.span>
       </motion.header>
 
+      {/* Body: sidebar + content */}
+      <div className="flex min-h-0">
+
+        {/* ── Sidebar (desktop only) ── */}
+        <aside className="hidden lg:flex flex-col w-72 xl:w-80 flex-shrink-0 sticky top-[57px] h-[calc(100vh-57px)] overflow-y-auto"
+          style={{ backgroundColor: "#0d0b09", borderRight: "1px solid #1e1a16" }}>
+          <div className="px-4 py-4" style={{ borderBottom: "1px solid #1e1a16" }}>
+            <p className="text-xs uppercase tracking-widest mb-0.5" style={{ color: "#4a3a30" }}>Зміст курсу</p>
+            <p className="text-sm font-bold" style={{ fontFamily: "var(--font-playfair)", color: "#c9a84c" }}>
+              Стан Достатку
+            </p>
+          </div>
+          <nav className="py-2">
+            {lessons.map((l, idx) => {
+              const isUnlocked = isLessonUnlocked(l, student.startDate);
+              const isWatchedLesson = watched && l.id === lesson.id ? watched : false;
+              const isCurrent = l.id === lesson.id;
+              return (
+                <Link key={l.id} href={isUnlocked ? `/lesson/${l.id}` : "#"}>
+                  <div
+                    className="flex items-center gap-3 px-4 py-3 transition-all cursor-pointer"
+                    style={{
+                      backgroundColor: isCurrent ? "rgba(201,168,76,0.08)" : "transparent",
+                      borderLeft: `2px solid ${isCurrent ? "#c9a84c" : "transparent"}`,
+                      opacity: isUnlocked ? 1 : 0.4,
+                    }}
+                  >
+                    <span className="text-xs w-5 text-center flex-shrink-0"
+                      style={{ color: isCurrent ? "#c9a84c" : "#3a2a20", fontFamily: "var(--font-playfair)" }}>
+                      {String(idx + 1).padStart(2, "0")}
+                    </span>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-[10px] uppercase tracking-wider mb-0.5" style={{ color: isCurrent ? "#c9a84c" : "#3a2a20" }}>
+                        {l.block}
+                      </p>
+                      <p className="text-xs leading-snug" style={{ color: isCurrent ? "#f5f0e8" : isUnlocked ? "#7a6a60" : "#2a2420" }}>
+                        {l.title}
+                      </p>
+                    </div>
+                    <div className="flex-shrink-0">
+                      {!isUnlocked ? (
+                        <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#2a2420" strokeWidth="2">
+                          <rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+                        </svg>
+                      ) : isCurrent ? (
+                        <svg width="10" height="10" viewBox="0 0 24 24" fill="#c9a84c"><polygon points="5,3 19,12 5,21"/></svg>
+                      ) : (
+                        <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#3a3430" strokeWidth="2.5" strokeLinecap="round">
+                          <polyline points="20 6 9 17 4 12"/>
+                        </svg>
+                      )}
+                    </div>
+                  </div>
+                </Link>
+              );
+            })}
+          </nav>
+        </aside>
+
+        {/* ── Main content ── */}
+        <div className="flex-1 min-w-0">
+
       {/* Video */}
       <motion.div
         className="w-full"
@@ -155,22 +217,20 @@ export default function LessonPage() {
         animate={{ opacity: 1 }}
         transition={{ duration: 0.6, delay: 0.2 }}
       >
-        <div className="max-w-5xl mx-auto">
-          <div className="relative w-full" style={{ paddingBottom: "56.25%" }}>
-            <iframe
-              className="absolute inset-0 w-full h-full"
-              src={`https://www.youtube.com/embed/${lesson.youtubeId}?rel=0&modestbranding=1`}
-              title={lesson.title}
-              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-              allowFullScreen
-            />
-          </div>
+        <div className="relative w-full" style={{ paddingBottom: "56.25%" }}>
+          <iframe
+            className="absolute inset-0 w-full h-full"
+            src={`https://www.youtube.com/embed/${lesson.youtubeId}?rel=0&modestbranding=1`}
+            title={lesson.title}
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+            allowFullScreen
+          />
         </div>
       </motion.div>
 
       {/* Lesson info + Audio + Notes */}
       <motion.div
-        className="max-w-4xl mx-auto px-6 py-10"
+        className="max-w-3xl mx-auto px-6 py-10"
         initial={{ opacity: 0, y: 30 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.6, delay: 0.3 }}
@@ -410,6 +470,8 @@ export default function LessonPage() {
           </div>
         </div>
       </motion.div>
+        </div> {/* end main content */}
+      </div> {/* end body flex */}
     </main>
   );
 }

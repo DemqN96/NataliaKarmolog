@@ -257,7 +257,86 @@ export default function LandingPage() {
 
       <hr className="section-divider" />
 
-      {/* ━━━━━━━━━━━━ 8. CTA ━━━━━━━━━━━━ */}
+      {/* ━━━━━━━━━━━━ 8. ЦІНА ━━━━━━━━━━━━ */}
+      <section className="py-24" style={{ backgroundColor: "#13110e" }}>
+        <div className="max-w-2xl mx-auto px-6">
+          <FadeIn>
+            <h2 className="text-4xl font-bold text-center mb-3"
+              style={{ fontFamily: "var(--font-playfair)", color: "#f5f0e8" }}>
+              Вартість курсу
+            </h2>
+            <p className="text-center mb-12" style={{ color: "#6a5a50" }}>
+              Одноразова оплата — доступ назавжди
+            </p>
+          </FadeIn>
+
+          <FadeIn delay={0.1}>
+            <div className="rounded-3xl p-8 md:p-10 relative overflow-hidden"
+              style={{
+                backgroundColor: "#1a1612",
+                border: "1px solid rgba(201,168,76,0.3)",
+                boxShadow: "0 0 60px rgba(201,168,76,0.06), 0 30px 60px rgba(0,0,0,0.4)",
+              }}>
+              {/* Glow */}
+              <div className="absolute -top-10 left-1/2 -translate-x-1/2 w-48 h-48 rounded-full pointer-events-none"
+                style={{ background: "radial-gradient(circle, rgba(201,168,76,0.15), transparent 70%)" }} />
+
+              <div className="relative">
+                {/* Badge */}
+                <div className="inline-block px-3 py-1 rounded-full text-xs uppercase tracking-widest mb-6"
+                  style={{ backgroundColor: "rgba(201,168,76,0.1)", border: "1px solid rgba(201,168,76,0.25)", color: "#c9a84c" }}>
+                  Повний доступ
+                </div>
+
+                <h3 className="text-2xl font-bold mb-2" style={{ fontFamily: "var(--font-playfair)" }}>
+                  Онлайн-курс «Стан Достатку»
+                </h3>
+                <p className="text-sm mb-8" style={{ color: "#6a5a50" }}>
+                  Авторський курс Наталії Войтович
+                </p>
+
+                {/* What's included */}
+                <ul className="space-y-3 mb-8">
+                  {[
+                    "9+ відео-уроків у закритому кабінеті",
+                    "Матеріали по 8 блоках курсу",
+                    "Практики та завдання після кожного уроку",
+                    "Нотатник з автозбереженням",
+                    "Доступ назавжди з будь-якого пристрою",
+                    "Сертифікат після завершення курсу",
+                  ].map((item) => (
+                    <li key={item} className="flex items-center gap-3">
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#c9a84c" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                        <polyline points="20 6 9 17 4 12"/>
+                      </svg>
+                      <span className="text-sm" style={{ color: "#c9b8a8" }}>{item}</span>
+                    </li>
+                  ))}
+                </ul>
+
+                {/* Divider */}
+                <div className="h-px mb-8" style={{ background: "linear-gradient(90deg, transparent, #2a2420, transparent)" }} />
+
+                {/* CTA */}
+                <div className="flex flex-col sm:flex-row items-center gap-5">
+                  <a href={PAYMENT_URL} target="_blank" rel="noopener noreferrer" className="w-full sm:w-auto">
+                    <button className="btn-gold w-full text-base px-10 py-4">
+                      Придбати курс →
+                    </button>
+                  </a>
+                </div>
+                <p className="text-xs mt-4" style={{ color: "#3a2a20" }}>
+                  Безпечна оплата · Миттєвий доступ після підтвердження
+                </p>
+              </div>
+            </div>
+          </FadeIn>
+        </div>
+      </section>
+
+      <hr className="section-divider" />
+
+      {/* ━━━━━━━━━━━━ 9. CTA ━━━━━━━━━━━━ */}
       <section className="py-24 relative overflow-hidden">
         <GoldParticles />
         <div className="absolute inset-0 pointer-events-none"
