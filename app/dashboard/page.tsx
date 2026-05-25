@@ -78,6 +78,12 @@ export default function DashboardPage() {
             </div>
           </Link>
           <span className="text-sm hidden sm:block" style={{ color: "#7a6a60" }}>{student.name}</span>
+          <Link href="/profile">
+            <button className="text-sm px-4 py-2 rounded-lg transition-all hover:opacity-80"
+              style={{ color: "#c9a84c", border: "1px solid rgba(201,168,76,0.3)", backgroundColor: "rgba(201,168,76,0.06)" }}>
+              Мій профіль
+            </button>
+          </Link>
           <button onClick={handleLogout}
             className="text-sm px-4 py-2 rounded-lg transition-all hover:opacity-70"
             style={{ color: "#7a6a60", border: "1px solid #2a2420" }}>
