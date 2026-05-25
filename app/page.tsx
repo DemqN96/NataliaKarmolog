@@ -15,6 +15,20 @@ export default function LandingPage() {
   return (
     <main style={{ backgroundColor: "#0f0d0a", color: "#f5f0e8" }}>
 
+      {/* ━━━━━━━━━━━━ HEADER ━━━━━━━━━━━━ */}
+      <header className="sticky top-0 z-50 flex justify-end px-6 py-4 pointer-events-none">
+        <a href="https://www.instagram.com/nataliia_karmolog/"
+           target="_blank" rel="noopener noreferrer"
+           className="pointer-events-auto w-9 h-9 rounded-full flex items-center justify-center transition-all hover:scale-110"
+           style={{ backgroundColor: "rgba(201,168,76,0.1)", border: "1px solid rgba(201,168,76,0.2)" }}>
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#c9a84c" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+            <rect x="2" y="2" width="20" height="20" rx="5" ry="5"/>
+            <circle cx="12" cy="12" r="4"/>
+            <circle cx="17.5" cy="6.5" r="1" fill="#c9a84c" stroke="none"/>
+          </svg>
+        </a>
+      </header>
+
       {/* ━━━━━━━━━━━━ 1. HERO ━━━━━━━━━━━━ */}
       <section className="relative overflow-hidden min-h-screen flex items-center">
         <div className="absolute inset-0 pointer-events-none"
@@ -80,7 +94,7 @@ export default function LandingPage() {
                 style={{ border: "1px solid rgba(201,168,76,0.25)", boxShadow: "0 30px 80px rgba(0,0,0,0.6)" }}
               />
               {/* Badge */}
-              <CountUpBadge target={500} suffix="+" label="Учасників курсу" />
+              <CountUpBadge target={1000} suffix="+" label="Задоволених клієнтів" />
             </div>
           </FadeIn>
         </div>
