@@ -1,5 +1,8 @@
 import Link from "next/link";
 import PhotoCard from "@/components/PhotoCard";
+import FadeIn from "@/components/FadeIn";
+import GoldParticles from "@/components/GoldParticles";
+import FeatureCards from "@/components/FeatureCards";
 
 const PAYMENT_URL =
   "https://secure.wayforpay.com/payment/sdf85981b9e62?utm_source=ig&utm_medium=social&utm_content=link_in_bio&fbclid=PAZXh0bgNhZW0CMTEAc3J0YwZhcHBfaWQPOTM2NjE5NzQzMzkyNDU5AAGnlZxmORhJR3MGoc36sFiIv8O_Mz1CV2qzCNgFV_CFUkw8M-ZIY3QHSiEwGI4_aem_MC1ptsSCKkq7GHuXuDyKUw";
@@ -9,81 +12,93 @@ export default function LandingPage() {
     <main className="min-h-screen" style={{ backgroundColor: "#0f0d0a", color: "#f5f0e8" }}>
 
       {/* ── HERO ── */}
-      <section className="relative overflow-hidden">
-        <div
-          className="absolute inset-0 opacity-15 pointer-events-none"
-          style={{ background: "radial-gradient(ellipse at 65% 40%, #c9a84c 0%, transparent 65%)" }}
-        />
-        <div className="max-w-6xl mx-auto px-6 py-16 md:py-24 flex flex-col md:flex-row items-center gap-10 md:gap-16">
+      <section className="relative overflow-hidden min-h-[90vh] flex items-center">
+        {/* Gold glow */}
+        <div className="absolute inset-0 pointer-events-none"
+          style={{ background: "radial-gradient(ellipse at 65% 40%, rgba(201,168,76,0.12) 0%, transparent 65%)" }} />
+        {/* Particles */}
+        <GoldParticles />
 
+        <div className="max-w-6xl mx-auto px-6 py-20 w-full flex flex-col md:flex-row items-center gap-12 md:gap-16">
           {/* Text */}
           <div className="flex-1 text-center md:text-left relative z-10 order-2 md:order-1">
-            <p className="text-sm uppercase tracking-widest mb-4" style={{ color: "#c9a84c" }}>
-              Онлайн-курс
-            </p>
-            <h1 className="text-5xl md:text-6xl lg:text-7xl font-bold mb-5 leading-tight">
-              Стан<br />
-              <span style={{ color: "#c9a84c" }}>Достатку</span>
-            </h1>
-            <p className="text-lg md:text-xl mb-2" style={{ color: "#c9b880" }}>
-              Курс Наталії Войтович
-            </p>
-            <p className="text-sm md:text-base mb-8" style={{ color: "#7a6a60" }}>
-              Кармолог · Психосоматолог (ГНМ) · Регресолог<br className="hidden md:block" />
-              Гіпнотерапевт · Духовний наставник
-            </p>
+            <FadeIn delay={0.1} direction="up">
+              <p className="text-sm uppercase tracking-[0.3em] mb-5" style={{ color: "#c9a84c", fontFamily: "var(--font-inter)" }}>
+                Онлайн-курс
+              </p>
+            </FadeIn>
 
-            <a href={PAYMENT_URL} target="_blank" rel="noopener noreferrer">
-              <button className="btn-gold text-lg px-10 py-4 w-full md:w-auto">
-                Придбати курс →
-              </button>
-            </a>
+            <FadeIn delay={0.25} direction="up">
+              <h1 className="text-6xl md:text-7xl lg:text-8xl font-bold mb-5 leading-[1.05]"
+                style={{ fontFamily: "var(--font-playfair)" }}>
+                Стан<br />
+                <span style={{
+                  color: "#c9a84c",
+                  textShadow: "0 0 60px rgba(201,168,76,0.3)"
+                }}>
+                  Достатку
+                </span>
+              </h1>
+            </FadeIn>
 
-            <p className="text-sm mt-4" style={{ color: "#5a4a40" }}>
-              Вже оплатили?{" "}
-              <Link href="/login" style={{ color: "#c9a84c" }} className="hover:underline">
-                Увійти до навчання
-              </Link>
-            </p>
+            <FadeIn delay={0.4} direction="up">
+              <p className="text-xl mb-2" style={{ color: "#c9b880", fontFamily: "var(--font-playfair)", fontStyle: "italic" }}>
+                Курс Наталії Войтович
+              </p>
+              <p className="text-sm mb-10" style={{ color: "#7a6a60", fontFamily: "var(--font-inter)" }}>
+                Кармолог · Психосоматолог (ГНМ) · Регресолог · Гіпнотерапевт
+              </p>
+            </FadeIn>
+
+            <FadeIn delay={0.55} direction="up">
+              <a href={PAYMENT_URL} target="_blank" rel="noopener noreferrer">
+                <button className="btn-gold text-lg px-10 py-4 w-full md:w-auto">
+                  Придбати курс →
+                </button>
+              </a>
+              <p className="text-sm mt-4" style={{ color: "#5a4a40" }}>
+                Вже оплатили?{" "}
+                <Link href="/login" style={{ color: "#c9a84c" }} className="hover:underline">
+                  Увійти до навчання
+                </Link>
+              </p>
+            </FadeIn>
           </div>
 
           {/* Hero photo */}
-          <div className="relative flex-shrink-0 order-1 md:order-2">
+          <FadeIn delay={0.3} direction="left" className="relative flex-shrink-0 order-1 md:order-2">
+            <div className="absolute -inset-4 rounded-3xl opacity-20"
+              style={{ background: "radial-gradient(circle, #c9a84c, transparent 70%)" }} />
             <PhotoCard
               src="/natalia-1.jpg"
               alt="Наталія Войтович"
-              className="w-64 h-80 md:w-80 md:h-[28rem] rounded-2xl"
-              style={{ border: "1px solid #c9a84c30" }}
+              className="w-64 h-80 md:w-80 md:h-[30rem] rounded-2xl relative z-10"
+              style={{ border: "1px solid rgba(201,168,76,0.3)", boxShadow: "0 20px 60px rgba(0,0,0,0.5)" }}
             />
-            <div
-              className="absolute -bottom-3 -right-3 w-20 h-20 rounded-xl -z-10"
-              style={{ backgroundColor: "#c9a84c15", border: "1px solid #c9a84c30" }}
-            />
-          </div>
+            <div className="absolute -bottom-4 -right-4 w-24 h-24 rounded-2xl -z-0"
+              style={{ backgroundColor: "rgba(201,168,76,0.08)", border: "1px solid rgba(201,168,76,0.2)" }} />
+          </FadeIn>
         </div>
       </section>
 
       {/* ── ABOUT ── */}
-      <section className="max-w-6xl mx-auto px-6 py-16">
-        <div className="grid md:grid-cols-2 gap-10 items-center">
+      <section className="max-w-6xl mx-auto px-6 py-20">
+        <div className="grid md:grid-cols-2 gap-12 items-center">
           {/* Photos collage */}
-          <div className="flex gap-3" style={{ height: "22rem" }}>
-            <PhotoCard
-              src="/natalia-2.jpg"
-              alt="Наталія Войтович"
-              className="flex-1 rounded-2xl w-full h-full"
-            />
-            <PhotoCard
-              src="/natalia-3.jpg"
-              alt="Наталія Войтович"
-              className="flex-1 rounded-2xl w-full h-full mt-8"
-              style={{ objectPosition: "center" }}
-            />
-          </div>
+          <FadeIn direction="right">
+            <div className="flex gap-4" style={{ height: "24rem" }}>
+              <PhotoCard src="/natalia-2.jpg" alt="Наталія Войтович"
+                className="flex-1 rounded-2xl w-full h-full"
+                style={{ boxShadow: "0 10px 40px rgba(0,0,0,0.4)" }} />
+              <PhotoCard src="/natalia-3.jpg" alt="Наталія Войтович"
+                className="flex-1 rounded-2xl w-full h-full mt-10"
+                style={{ objectPosition: "center", boxShadow: "0 10px 40px rgba(0,0,0,0.4)" }} />
+            </div>
+          </FadeIn>
 
           {/* Text */}
-          <div>
-            <h2 className="text-2xl md:text-3xl font-bold mb-5" style={{ color: "#c9a84c" }}>
+          <FadeIn direction="left" delay={0.15}>
+            <h2 className="text-3xl md:text-4xl font-bold mb-6" style={{ color: "#c9a84c", fontFamily: "var(--font-playfair)" }}>
               Про ментора
             </h2>
             <p className="text-base leading-relaxed mb-4" style={{ color: "#d4c9b8" }}>
@@ -101,66 +116,58 @@ export default function LandingPage() {
               не менш важливими будуть реальні дії — адже я за{" "}
               <strong style={{ color: "#c9a84c" }}>РЕЗУЛЬТАТ!</strong>
             </p>
-          </div>
+          </FadeIn>
         </div>
       </section>
+
+      {/* ── DIVIDER ── */}
+      <div className="max-w-4xl mx-auto px-6">
+        <div className="h-px" style={{ background: "linear-gradient(90deg, transparent, #c9a84c40, transparent)" }} />
+      </div>
 
       {/* ── FEATURES ── */}
-      <section className="max-w-6xl mx-auto px-6 py-8">
-        <h2 className="text-2xl md:text-3xl font-bold text-center mb-10" style={{ color: "#c9a84c" }}>
-          Що вас чекає на курсі
-        </h2>
-        <div className="grid md:grid-cols-3 gap-5">
-          {[
-            { icon: "🔓", title: "Відео по днях", desc: "Уроки відкриваються поступово — кожен день новий матеріал для глибокої інтеграції" },
-            { icon: "🎯", title: "Практичні інструменти", desc: "Не тільки теорія — конкретні техніки та практики для реальної трансформації" },
-            { icon: "✨", title: "Карма та психосоматика", desc: "Унікальне поєднання кармології та наукової психосоматики ГНМ" },
-            { icon: "🧠", title: "Робота з безсвідомим", desc: "Глибинна робота з підсвідомими блоками, які заважають достатку" },
-            { icon: "💰", title: "Фінансова карма", desc: "Розберемо фінансові програми, які передаються через покоління" },
-            { icon: "🌟", title: "Особистісне зростання", desc: "Комплексний підхід до створення життя достатку та гармонії" },
-          ].map((item) => (
-            <div
-              key={item.title}
-              className="rounded-xl p-6"
-              style={{ backgroundColor: "#1a1612", border: "1px solid #2a2420" }}
-            >
-              <div className="text-3xl mb-3">{item.icon}</div>
-              <h3 className="font-bold mb-2 text-base" style={{ color: "#f5f0e8" }}>{item.title}</h3>
-              <p className="text-sm leading-relaxed" style={{ color: "#7a6a60" }}>{item.desc}</p>
-            </div>
-          ))}
-        </div>
+      <section className="max-w-6xl mx-auto px-6 py-20">
+        <FadeIn direction="up">
+          <h2 className="text-3xl md:text-4xl font-bold text-center mb-12" style={{ color: "#c9a84c", fontFamily: "var(--font-playfair)" }}>
+            Що вас чекає на курсі
+          </h2>
+        </FadeIn>
+
+        <FeatureCards />
       </section>
 
-      {/* ── CTA BOTTOM ── */}
-      <section
-        className="mx-4 md:mx-auto max-w-4xl my-16 rounded-2xl px-8 py-12 text-center relative overflow-hidden"
-        style={{ backgroundColor: "#1a1612", border: "1px solid #3a2e10" }}
-      >
-        <div
-          className="absolute inset-0 opacity-5 pointer-events-none"
-          style={{ background: "radial-gradient(ellipse at center, #c9a84c, transparent 70%)" }}
-        />
-        <p className="text-sm uppercase tracking-widest mb-3 relative" style={{ color: "#c9a84c" }}>
-          Почніть вже сьогодні
-        </p>
-        <h2 className="text-3xl md:text-4xl font-bold mb-4 relative">
-          Готові змінити своє життя?
-        </h2>
-        <p className="text-base mb-8 relative max-w-xl mx-auto" style={{ color: "#a09080" }}>
-          Приєднуйтесь до курсу «Стан Достатку» і почніть свій шлях до фінансової свободи та внутрішньої гармонії
-        </p>
-        <a href={PAYMENT_URL} target="_blank" rel="noopener noreferrer">
-          <button className="btn-gold text-lg px-12 py-4 relative">
-            Придбати курс →
-          </button>
-        </a>
-        <p className="text-sm mt-4 relative" style={{ color: "#5a4a40" }}>
-          Вже оплатили?{" "}
-          <Link href="/login" style={{ color: "#c9a84c" }} className="hover:underline">
-            Увійти до навчання
-          </Link>
-        </p>
+      {/* ── CTA ── */}
+      <section className="px-4 pb-20">
+        <FadeIn direction="up">
+          <div
+            className="max-w-4xl mx-auto rounded-3xl px-8 py-14 text-center relative overflow-hidden"
+            style={{ backgroundColor: "#1a1612", border: "1px solid rgba(201,168,76,0.2)" }}
+          >
+            <div className="absolute inset-0 pointer-events-none"
+              style={{ background: "radial-gradient(ellipse at center, rgba(201,168,76,0.06), transparent 70%)" }} />
+            <GoldParticles />
+            <p className="text-sm uppercase tracking-[0.25em] mb-4 relative" style={{ color: "#c9a84c" }}>
+              Почніть вже сьогодні
+            </p>
+            <h2 className="text-3xl md:text-5xl font-bold mb-5 relative" style={{ fontFamily: "var(--font-playfair)" }}>
+              Готові змінити своє життя?
+            </h2>
+            <p className="text-base mb-10 relative max-w-xl mx-auto" style={{ color: "#a09080" }}>
+              Приєднуйтесь до курсу «Стан Достатку» і почніть свій шлях до фінансової свободи та внутрішньої гармонії
+            </p>
+            <a href={PAYMENT_URL} target="_blank" rel="noopener noreferrer" className="relative">
+              <button className="btn-gold text-lg px-14 py-4">
+                Придбати курс →
+              </button>
+            </a>
+            <p className="text-sm mt-5 relative" style={{ color: "#5a4a40" }}>
+              Вже оплатили?{" "}
+              <Link href="/login" style={{ color: "#c9a84c" }} className="hover:underline">
+                Увійти до навчання
+              </Link>
+            </p>
+          </div>
+        </FadeIn>
       </section>
 
     </main>
