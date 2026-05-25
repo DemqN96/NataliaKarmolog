@@ -135,6 +135,14 @@ export default function LessonPage() {
   const nextLesson = lessons[currentIndex + 1];
   const nextUnlocked = nextLesson && isLessonUnlocked(nextLesson, student.startDate);
 
+  // Normalize title for sidebar — convert ALL CAPS to Sentence case
+  function toSentenceCase(str: string) {
+    if (str === str.toUpperCase()) {
+      return str.charAt(0) + str.slice(1).toLowerCase();
+    }
+    return str;
+  }
+
   return (
     <main className="min-h-screen" style={{ backgroundColor: "#0f0d0a", color: "#f5f0e8" }}>
 
@@ -204,8 +212,8 @@ export default function LessonPage() {
                       <p className="text-[10px] uppercase tracking-wider mb-0.5" style={{ color: isCurrent ? "#c9a84c" : "#3a2a20" }}>
                         {l.block}
                       </p>
-                      <p className="text-xs leading-snug" style={{ color: isCurrent ? "#f5f0e8" : isUnlocked ? "#7a6a60" : "#2a2420" }}>
-                        {l.title}
+                      <p className="text-xs leading-snug" style={{ color: isCurrent ? "#f5f0e8" : isUnlocked ? "#7a6a60" : "#2a2420", fontWeight: isCurrent ? 600 : 400 }}>
+                        {toSentenceCase(l.title)}
                       </p>
                     </div>
                     <div className="flex-shrink-0">
