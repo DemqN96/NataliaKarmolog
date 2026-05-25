@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { motion } from "framer-motion";
-import { getSession, hasCertificateAccess, type Student } from "@/lib/auth";
+import { getSession, hasCertificateAccess, updateStudent, type Student } from "@/lib/auth";
 import { getLessons, getUnlockedDays } from "@/lib/lessons";
 import { getWatched } from "@/lib/watched";
 import { getNote } from "@/lib/notes";
@@ -24,6 +24,11 @@ export default function ProfilePage() {
   const [badges, setBadges] = useState<Badge[]>([]);
   const [certAccess, setCertAccess] = useState(false);
 
+  // Settings form
+  const [settingsForm, setSettingsForm] = useState({ email: "", newPassword: "", birthday: "" });
+  const [showPassNew, setShowPassNew] = useState(false);
+  const [settingsMsg, setSettingsMsg] = useState<{ text: string; ok: boolean } | null>(null);
+
   useEffect(() => {
     const session = getSession();
     if (!session) { router.replace("/login"); return; }
@@ -39,6 +44,7 @@ export default function ProfilePage() {
 
     setStudent(session);
     setCertAccess(hasCertificateAccess(session.email));
+    setSettingsForm({ email: session.email, newPassword: "", birthday: session.birthday ?? "" });
     setStats({ lessons: lessons.length, watched: watched.length, notes: noteCount, days: Math.max(0, days) });
 
     const pct = lessons.length > 0 ? (watched.length / lessons.length) * 100 : 0;
@@ -302,6 +308,117 @@ export default function ProfilePage() {
             ))}
           </div>
         </motion.div>
+        {/* ── Settings ── */}
+        <motion.div
+          className="mt-10"
+          initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0.8 }}
+        >
+          <h3 className="text-xl font-bold mb-5" style={{ fontFamily: "var(--font-playfair)", color: "#f5f0e8" }}>
+            Налаштування
+          </h3>
+
+          <div className="rounded-2xl overflow-hidden" style={{ border: "1px solid #2a2420" }}>
+            {/* Header */}
+            <div className="px-6 py-4" style={{ backgroundColor: "#1a1612", borderBottom: "1px solid #2a2420" }}>
+              <p className="text-xs uppercase tracking-widest" style={{ color: "#c9a84c" }}>Особисті дані</p>
+            </div>
+
+            <div className="px-6 py-5 space-y-4" style={{ backgroundColor: "#13110e" }}>
+
+              {/* Email / login */}
+              <div>
+                <label className="block text-xs mb-1.5 uppercase tracking-wider" style={{ color: "#6a5a50" }}>
+                  Логін (Email)
+                </label>
+                <input
+                  type="email"
+                  value={settingsForm.email}
+                  onChange={(e) => setSettingsForm(f => ({ ...f, email: e.target.value }))}
+                  className="w-full rounded-xl px-4 py-3 text-sm outline-none"
+                  style={{ backgroundColor: "#1a1612", border: "1px solid #2a2420", color: "#f5f0e8", caretColor: "#c9a84c" }}
+                />
+              </div>
+
+              {/* New password */}
+              <div>
+                <label className="block text-xs mb-1.5 uppercase tracking-wider" style={{ color: "#6a5a50" }}>
+                  Новий пароль
+                </label>
+                <div className="relative">
+                  <input
+                    type={showPassNew ? "text" : "password"}
+                    value={settingsForm.newPassword}
+                    onChange={(e) => setSettingsForm(f => ({ ...f, newPassword: e.target.value }))}
+                    placeholder="Залиште порожнім, щоб не змінювати"
+                    className="w-full rounded-xl px-4 py-3 text-sm outline-none pr-12"
+                    style={{ backgroundColor: "#1a1612", border: "1px solid #2a2420", color: "#f5f0e8", caretColor: "#c9a84c" }}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassNew(v => !v)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-xs px-2 py-1 rounded transition-opacity hover:opacity-70"
+                    style={{ color: "#6a5a50" }}
+                  >
+                    {showPassNew ? "Сховати" : "Показати"}
+                  </button>
+                </div>
+              </div>
+
+              {/* Birthday */}
+              <div>
+                <label className="block text-xs mb-1.5 uppercase tracking-wider" style={{ color: "#6a5a50" }}>
+                  Дата народження
+                </label>
+                <input
+                  type="date"
+                  value={settingsForm.birthday}
+                  onChange={(e) => setSettingsForm(f => ({ ...f, birthday: e.target.value }))}
+                  className="w-full rounded-xl px-4 py-3 text-sm outline-none"
+                  style={{ backgroundColor: "#1a1612", border: "1px solid #2a2420", color: "#f5f0e8", colorScheme: "dark", caretColor: "#c9a84c" }}
+                />
+              </div>
+
+              {/* Save button + message */}
+              {settingsMsg && (
+                <p className="text-sm" style={{ color: settingsMsg.ok ? "#c9a84c" : "#ff6b6b" }}>
+                  {settingsMsg.text}
+                </p>
+              )}
+
+              <button
+                onClick={() => {
+                  if (!student) return;
+                  const updates: Parameters<typeof updateStudent>[1] = {};
+                  if (settingsForm.email && settingsForm.email !== student.email)
+                    updates.email = settingsForm.email.trim();
+                  if (settingsForm.newPassword.trim())
+                    updates.password = settingsForm.newPassword.trim();
+                  if (settingsForm.birthday !== (student.birthday ?? ""))
+                    updates.birthday = settingsForm.birthday;
+
+                  if (Object.keys(updates).length === 0) {
+                    setSettingsMsg({ text: "Нічого не змінено", ok: false });
+                    return;
+                  }
+                  const res = updateStudent(student.email, updates);
+                  if (res.ok && res.student) {
+                    setStudent(res.student);
+                    setSettingsForm(f => ({ ...f, newPassword: "" }));
+                    setSettingsMsg({ text: "Збережено ✓", ok: true });
+                    setTimeout(() => setSettingsMsg(null), 3000);
+                  } else {
+                    setSettingsMsg({ text: res.error ?? "Помилка", ok: false });
+                  }
+                }}
+                className="btn-gold w-full py-3 text-sm"
+              >
+                Зберегти зміни
+              </button>
+            </div>
+          </div>
+        </motion.div>
+
       </div>
     </main>
   );

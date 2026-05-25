@@ -4,6 +4,39 @@ export interface Student {
   startDate: string; // ISO date string
   password: string;
   certificateUnlocked?: boolean;
+  birthday?: string; // ISO date string YYYY-MM-DD
+}
+
+export function updateStudent(
+  currentEmail: string,
+  updates: Partial<Pick<Student, "email" | "password" | "birthday" | "name">>
+): { ok: boolean; error?: string; student?: Student } {
+  const students = getStudents();
+  const idx = students.findIndex((s) => s.email === currentEmail);
+  if (idx < 0) return { ok: false, error: "Студента не знайдено" };
+
+  // Check new email not taken by another student
+  if (updates.email && updates.email !== currentEmail) {
+    const taken = students.find(
+      (s) => s.email.toLowerCase() === updates.email!.toLowerCase()
+    );
+    if (taken) return { ok: false, error: "Email вже зайнятий" };
+  }
+
+  students[idx] = { ...students[idx], ...updates };
+  saveStudents(students);
+
+  // Refresh session
+  const sessionRaw = typeof window !== "undefined"
+    ? localStorage.getItem("sd_session") : null;
+  if (sessionRaw) {
+    const session = JSON.parse(sessionRaw) as Student;
+    if (session.email === currentEmail || session.email === updates.email) {
+      localStorage.setItem("sd_session", JSON.stringify(students[idx]));
+    }
+  }
+
+  return { ok: true, student: students[idx] };
 }
 
 export function toggleCertificate(email: string): boolean {

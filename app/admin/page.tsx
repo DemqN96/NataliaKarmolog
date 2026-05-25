@@ -31,6 +31,15 @@ export default function AdminPage() {
   const [students, setStudents] = useState<Student[]>([]);
   const [studentForm, setStudentForm] = useState({ name: "", email: "", password: "", startDate: "" });
   const [studentMsg, setStudentMsg] = useState("");
+  const [visiblePasswords, setVisiblePasswords] = useState<Set<string>>(new Set());
+
+  function togglePassVisible(email: string) {
+    setVisiblePasswords(prev => {
+      const next = new Set(prev);
+      next.has(email) ? next.delete(email) : next.add(email);
+      return next;
+    });
+  }
 
   useEffect(() => {
     if (auth) {
@@ -344,7 +353,7 @@ export default function AdminPage() {
                   <table className="w-full text-sm">
                     <thead>
                       <tr style={{ borderBottom: "1px solid #2a2420" }}>
-                        {["Ім'я", "Email", "Старт", "Прогрес", "Дії"].map((h) => (
+                        {["Ім'я", "Email", "Пароль", "Старт", "ДН", "Прогрес", "Дії"].map((h) => (
                           <th key={h} className="px-4 py-2.5 text-left text-xs uppercase tracking-wider"
                             style={{ color: "#6a5a50" }}>{h}</th>
                         ))}
@@ -354,12 +363,31 @@ export default function AdminPage() {
                       {students.map((s, i) => {
                         const watchedCnt = getWatchedCount(s.email);
                         const pct = lessons.length > 0 ? Math.round((watchedCnt / lessons.length) * 100) : 0;
+                        const passVisible = visiblePasswords.has(s.email);
                         return (
                           <tr key={s.email}
                             style={{ borderBottom: i < students.length - 1 ? "1px solid #1e1a16" : "none" }}>
                             <td className="px-4 py-3 font-medium">{s.name}</td>
                             <td className="px-4 py-3 text-xs" style={{ color: "#7a6a60" }}>{s.email}</td>
+                            <td className="px-4 py-3">
+                              <div className="flex items-center gap-1.5">
+                                <span className="text-xs font-mono"
+                                  style={{ color: passVisible ? "#f5f0e8" : "#3a2a20", letterSpacing: passVisible ? "normal" : "0.15em" }}>
+                                  {passVisible ? s.password : "••••••"}
+                                </span>
+                                <button
+                                  onClick={() => togglePassVisible(s.email)}
+                                  className="text-[10px] px-1.5 py-0.5 rounded transition-opacity hover:opacity-70"
+                                  style={{ color: "#6a5a50", border: "1px solid #2a2420" }}
+                                >
+                                  {passVisible ? "сх" : "пк"}
+                                </button>
+                              </div>
+                            </td>
                             <td className="px-4 py-3 text-xs" style={{ color: "#7a6a60" }}>{s.startDate}</td>
+                            <td className="px-4 py-3 text-xs" style={{ color: "#7a6a60" }}>
+                              {s.birthday ?? <span style={{ color: "#2a2420" }}>—</span>}
+                            </td>
                             <td className="px-4 py-3">
                               <div className="flex items-center gap-2">
                                 <div className="w-16 h-1.5 rounded-full overflow-hidden" style={{ backgroundColor: "#2a2420" }}>
