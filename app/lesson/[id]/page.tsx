@@ -39,10 +39,18 @@ export default function LessonPage() {
   // Watched state
   const [watched, setWatched] = useState(false);
 
+  // Tab state
+  const [activeTab, setActiveTab] = useState<"notes" | "homework">("homework");
+
   // Notes state
   const [note, setNote] = useState("");
   const [noteSaved, setNoteSaved] = useState(false);
   const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // Homework answer state
+  const [hwAnswer, setHwAnswer] = useState("");
+  const [hwSaved, setHwSaved] = useState(false);
+  const hwTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
     const session = getSession();
@@ -54,6 +62,7 @@ export default function LessonPage() {
     setLesson(found);
     setLessons(all);
     setNote(getNote(String(params.id), session.email));
+    setHwAnswer(getNote(`hw_${String(params.id)}`, session.email));
     setWatched(isWatched(found.id, session.email));
   }, [router, params.id]);
 
@@ -67,6 +76,19 @@ export default function LessonPage() {
         saveNote(lesson.id, student.email, value);
         setNoteSaved(true);
         setTimeout(() => setNoteSaved(false), 2000);
+      }
+    }, 800);
+  }, [student, lesson]);
+
+  const handleHwChange = useCallback((value: string) => {
+    setHwAnswer(value);
+    setHwSaved(false);
+    if (hwTimer.current) clearTimeout(hwTimer.current);
+    hwTimer.current = setTimeout(() => {
+      if (student && lesson) {
+        saveNote(`hw_${lesson.id}`, student.email, value);
+        setHwSaved(true);
+        setTimeout(() => setHwSaved(false), 2000);
       }
     }, 800);
   }, [student, lesson]);
@@ -384,7 +406,7 @@ export default function LessonPage() {
           </motion.div>
         )}
 
-        {/* ── Notepad ── */}
+        {/* ── Tabs: Завдання / Нотатки ── */}
         <motion.div
           className="rounded-2xl overflow-hidden mb-10"
           style={{ border: "1px solid #2a2420" }}
@@ -392,45 +414,111 @@ export default function LessonPage() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.55 }}
         >
-          {/* Notepad header */}
-          <div className="flex items-center justify-between px-5 py-3"
-            style={{ backgroundColor: "#1a1612", borderBottom: "1px solid #2a2420" }}>
-            <div className="flex items-center gap-2.5">
-              <svg width="15" height="15" viewBox="0 0 24 24" fill="#c9a84c">
-                <path d="M14 2H6c-1.1 0-2 .9-2 2v16c0 1.1.89 2 2 2h12c1.1 0 2-.9 2-2V8l-6-6zm-1 7V3.5L18.5 9H13z"/>
-              </svg>
-              <span className="text-xs uppercase tracking-widest" style={{ color: "#c9a84c" }}>Мої нотатки</span>
-            </div>
-            <span
-              className="text-xs transition-opacity duration-300"
-              style={{ color: "#4a3a30", opacity: noteSaved ? 1 : 0 }}
-            >
-              збережено ✓
-            </span>
-          </div>
-
-          {/* Textarea */}
-          <div style={{ backgroundColor: "#13110e" }}>
-            <textarea
-              value={note}
-              onChange={(e) => handleNoteChange(e.target.value)}
-              placeholder="Записуйте думки, інсайти, практики з цього уроку…&#10;&#10;Нотатки зберігаються автоматично."
-              rows={7}
-              className="w-full px-5 py-4 text-sm leading-relaxed outline-none resize-none"
-              style={{
-                backgroundColor: "transparent",
-                color: "#d4c9b8",
-                caretColor: "#c9a84c",
-                fontFamily: "inherit",
-              }}
-            />
-            {/* Line counter hint */}
-            <div className="px-5 pb-3 flex justify-end">
-              <span className="text-xs" style={{ color: "#2a2420" }}>
-                {note.length > 0 ? `${note.length} симв.` : ""}
+          {/* Tab bar */}
+          <div className="flex" style={{ backgroundColor: "#1a1612", borderBottom: "1px solid #2a2420" }}>
+            {([
+              { id: "homework", label: "Завдання", icon: "✦" },
+              { id: "notes",    label: "Нотатки",  icon: "✍" },
+            ] as const).map((tab) => (
+              <button
+                key={tab.id}
+                onClick={() => setActiveTab(tab.id)}
+                className="flex items-center gap-2 px-5 py-3 text-xs uppercase tracking-widest transition-all relative"
+                style={{
+                  color: activeTab === tab.id ? "#c9a84c" : "#4a3a30",
+                  fontWeight: activeTab === tab.id ? 600 : 400,
+                }}
+              >
+                <span>{tab.icon}</span>
+                {tab.label}
+                {activeTab === tab.id && (
+                  <motion.div
+                    layoutId="tab-underline"
+                    className="absolute bottom-0 left-0 right-0 h-0.5"
+                    style={{ backgroundColor: "#c9a84c" }}
+                  />
+                )}
+              </button>
+            ))}
+            {/* Save indicator */}
+            <div className="ml-auto flex items-center px-4">
+              <span
+                className="text-xs transition-opacity duration-300"
+                style={{ color: "#4a3a30", opacity: (activeTab === "notes" ? noteSaved : hwSaved) ? 1 : 0 }}
+              >
+                збережено ✓
               </span>
             </div>
           </div>
+
+          {/* Tab: Завдання */}
+          {activeTab === "homework" && (
+            <div style={{ backgroundColor: "#13110e" }}>
+              {/* Task description */}
+              {lesson.homework ? (
+                <div className="px-5 pt-5 pb-4" style={{ borderBottom: "1px solid #1e1a16" }}>
+                  <p className="text-xs uppercase tracking-widest mb-3" style={{ color: "#c9a84c" }}>
+                    Завдання до уроку
+                  </p>
+                  <p className="text-sm leading-relaxed whitespace-pre-line" style={{ color: "#c9b8a8" }}>
+                    {lesson.homework}
+                  </p>
+                </div>
+              ) : (
+                <div className="px-5 pt-5 pb-4" style={{ borderBottom: "1px solid #1e1a16" }}>
+                  <p className="text-sm" style={{ color: "#3a2a20" }}>Завдання ще не додано.</p>
+                </div>
+              )}
+              {/* Answer textarea */}
+              <div>
+                <p className="px-5 pt-4 text-xs uppercase tracking-widest" style={{ color: "#4a3a30" }}>
+                  Моя відповідь
+                </p>
+                <textarea
+                  value={hwAnswer}
+                  onChange={(e) => handleHwChange(e.target.value)}
+                  placeholder="Запишіть свою відповідь тут…&#10;&#10;Зберігається автоматично."
+                  rows={6}
+                  className="w-full px-5 py-3 text-sm leading-relaxed outline-none resize-none"
+                  style={{
+                    backgroundColor: "transparent",
+                    color: "#d4c9b8",
+                    caretColor: "#c9a84c",
+                    fontFamily: "inherit",
+                  }}
+                />
+                <div className="px-5 pb-3 flex justify-end">
+                  <span className="text-xs" style={{ color: "#2a2420" }}>
+                    {hwAnswer.length > 0 ? `${hwAnswer.length} симв.` : ""}
+                  </span>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Tab: Нотатки */}
+          {activeTab === "notes" && (
+            <div style={{ backgroundColor: "#13110e" }}>
+              <textarea
+                value={note}
+                onChange={(e) => handleNoteChange(e.target.value)}
+                placeholder="Записуйте думки, інсайти, практики з цього уроку…&#10;&#10;Нотатки зберігаються автоматично."
+                rows={10}
+                className="w-full px-5 py-4 text-sm leading-relaxed outline-none resize-none"
+                style={{
+                  backgroundColor: "transparent",
+                  color: "#d4c9b8",
+                  caretColor: "#c9a84c",
+                  fontFamily: "inherit",
+                }}
+              />
+              <div className="px-5 pb-3 flex justify-end">
+                <span className="text-xs" style={{ color: "#2a2420" }}>
+                  {note.length > 0 ? `${note.length} симв.` : ""}
+                </span>
+              </div>
+            </div>
+          )}
         </motion.div>
 
         {/* Navigation */}

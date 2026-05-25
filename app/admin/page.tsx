@@ -11,7 +11,7 @@ import {
   moveLessonUp, moveLessonDown, type Lesson,
 } from "@/lib/lessons";
 
-const EMPTY_LESSON = { title: "", block: "", description: "", youtubeId: "", duration: "", day: 0, audioUrl: "" };
+const EMPTY_LESSON = { title: "", block: "", description: "", youtubeId: "", duration: "", day: 0, audioUrl: "", homework: "" };
 
 export default function AdminPage() {
   const [auth, setAuth] = useState(false);
@@ -405,30 +405,44 @@ function LessonFormFields({
   form: Omit<Lesson, "id">;
   setForm: (f: Omit<Lesson, "id">) => void;
 }) {
-  const fields = [
+  const fields: { key: string; label: string; type: string; placeholder: string }[] = [
     { key: "title", label: "Назва уроку", type: "text", placeholder: "Фінансова карма" },
     { key: "block", label: "Блок", type: "text", placeholder: "БЛОК 1" },
     { key: "youtubeId", label: "YouTube ID", type: "text", placeholder: "dQw4w9WgXcQ" },
     { key: "day", label: "Відкривається на день №", type: "number", placeholder: "0" },
-    { key: "duration", label: "Тривалість", type: "text", placeholder: "~30 хв" },
+    { key: "duration", label: "Тривалість", type: "text", placeholder: "40–60 хв" },
     { key: "description", label: "Опис", type: "text", placeholder: "Короткий опис уроку..." },
     { key: "audioUrl", label: "Аудіо (пряме посилання на mp3/m4a)", type: "url", placeholder: "https://..." },
+    { key: "homework", label: "Завдання до уроку", type: "textarea", placeholder: "Напишіть завдання для учасників курсу…" },
   ];
+
+  const fullWidthKeys = ["description", "audioUrl", "homework"];
 
   return (
     <div className="grid md:grid-cols-2 gap-3">
       {fields.map((f) => (
-        <div key={f.key} className={(f.key === "description" || f.key === "audioUrl") ? "md:col-span-2" : ""}>
+        <div key={f.key} className={fullWidthKeys.includes(f.key) ? "md:col-span-2" : ""}>
           <label className="block text-xs mb-1" style={{ color: "#a09080" }}>{f.label}</label>
-          <input
-            type={f.type}
-            value={String(form[f.key as keyof typeof form])}
-            onChange={(e) => setForm({ ...form, [f.key]: e.target.value })}
-            placeholder={f.placeholder}
-            min={f.type === "number" ? 0 : undefined}
-            className="w-full rounded-lg px-3 py-2 text-sm outline-none"
-            style={{ backgroundColor: "#0f0d0a", border: "1px solid #3a3430", color: "#f5f0e8" }}
-          />
+          {f.type === "textarea" ? (
+            <textarea
+              value={String(form[f.key as keyof typeof form] ?? "")}
+              onChange={(e) => setForm({ ...form, [f.key]: e.target.value })}
+              placeholder={f.placeholder}
+              rows={4}
+              className="w-full rounded-lg px-3 py-2 text-sm outline-none resize-y"
+              style={{ backgroundColor: "#0f0d0a", border: "1px solid #3a3430", color: "#f5f0e8", fontFamily: "inherit" }}
+            />
+          ) : (
+            <input
+              type={f.type}
+              value={String(form[f.key as keyof typeof form] ?? "")}
+              onChange={(e) => setForm({ ...form, [f.key]: e.target.value })}
+              placeholder={f.placeholder}
+              min={f.type === "number" ? 0 : undefined}
+              className="w-full rounded-lg px-3 py-2 text-sm outline-none"
+              style={{ backgroundColor: "#0f0d0a", border: "1px solid #3a3430", color: "#f5f0e8" }}
+            />
+          )}
         </div>
       ))}
     </div>
