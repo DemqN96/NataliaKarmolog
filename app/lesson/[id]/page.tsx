@@ -7,6 +7,7 @@ import { motion } from "framer-motion";
 import { getSession, type Student } from "@/lib/auth";
 import { getLessons, isLessonUnlocked, type Lesson } from "@/lib/lessons";
 import { getNote, saveNote } from "@/lib/notes";
+import { isWatched, markWatched } from "@/lib/watched";
 
 export default function LessonPage() {
   const router = useRouter();
@@ -35,6 +36,9 @@ export default function LessonPage() {
   const [speed, setSpeed] = useState<1 | 1.5 | 2>(1);
   const [audioError, setAudioError] = useState(false);
 
+  // Watched state
+  const [watched, setWatched] = useState(false);
+
   // Notes state
   const [note, setNote] = useState("");
   const [noteSaved, setNoteSaved] = useState(false);
@@ -50,6 +54,7 @@ export default function LessonPage() {
     setLesson(found);
     setLessons(all);
     setNote(getNote(String(params.id), session.email));
+    setWatched(isWatched(found.id, session.email));
   }, [router, params.id]);
 
   // Auto-save notes with debounce
@@ -176,7 +181,43 @@ export default function LessonPage() {
         <h1 className="text-2xl md:text-3xl font-bold mb-3" style={{ fontFamily: "var(--font-playfair)" }}>
           {lesson.title}
         </h1>
-        <p className="text-base mb-10" style={{ color: "#7a6a60" }}>{lesson.description}</p>
+        <p className="text-base mb-6" style={{ color: "#7a6a60" }}>{lesson.description}</p>
+
+        {/* ── Mark as Watched ── */}
+        <motion.button
+          onClick={() => {
+            if (!watched && student && lesson) {
+              markWatched(lesson.id, student.email);
+              setWatched(true);
+            }
+          }}
+          className="flex items-center gap-2.5 px-5 py-3 rounded-xl mb-8 text-sm font-medium transition-all"
+          style={{
+            backgroundColor: watched ? "rgba(201,168,76,0.12)" : "#1a1612",
+            border: `1px solid ${watched ? "rgba(201,168,76,0.4)" : "#2a2420"}`,
+            color: watched ? "#c9a84c" : "#6a5a50",
+            cursor: watched ? "default" : "pointer",
+          }}
+          whileTap={!watched ? { scale: 0.97 } : {}}
+          animate={watched ? { scale: [1, 1.05, 1] } : {}}
+          transition={{ duration: 0.3 }}
+        >
+          <motion.span
+            animate={watched ? { rotate: [0, 360] } : {}}
+            transition={{ duration: 0.4 }}
+          >
+            {watched ? (
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#c9a84c" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <polyline points="20 6 9 17 4 12" />
+              </svg>
+            ) : (
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#6a5a50" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <circle cx="12" cy="12" r="10"/><polyline points="12 8 12 12 14 14"/>
+              </svg>
+            )}
+          </motion.span>
+          {watched ? "Урок переглянуто ✓" : "Позначити як переглянутий"}
+        </motion.button>
 
         {/* ── Audio Player ── */}
         {lesson.audioUrl && !audioError && (

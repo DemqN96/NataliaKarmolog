@@ -5,6 +5,7 @@ import Link from "next/link";
 import {
   addStudent, getStudents, saveStudents, ADMIN_PASSWORD, type Student,
 } from "@/lib/auth";
+import { getWatchedCount } from "@/lib/watched";
 import {
   getLessons, saveLessons, addLesson, updateLesson, deleteLesson,
   moveLessonUp, moveLessonDown, type Lesson,
@@ -121,6 +122,16 @@ export default function AdminPage() {
     const updated = students.filter((s) => s.email !== email);
     saveStudents(updated);
     setStudents(updated);
+  }
+
+  function handleResetStartDate(email: string) {
+    const today = new Date().toISOString().slice(0, 10);
+    const updated = students.map((s) =>
+      s.email === email ? { ...s, startDate: today } : s
+    );
+    saveStudents(updated);
+    setStudents(updated);
+    flash(setStudentMsg, `Дату старту скинуто на сьогодні (${today})`);
   }
 
   return (
@@ -315,35 +326,67 @@ export default function AdminPage() {
             </div>
 
             {/* Students list */}
-            <div className="rounded-xl p-5" style={{ backgroundColor: "#1a1612", border: "1px solid #2a2420" }}>
-              <h2 className="text-lg font-bold mb-4" style={{ color: "#c9a84c" }}>
-                Студенти ({students.length})
-              </h2>
+            <div className="rounded-xl overflow-hidden" style={{ backgroundColor: "#1a1612", border: "1px solid #2a2420" }}>
+              <div className="px-5 py-4 flex items-center justify-between" style={{ borderBottom: "1px solid #2a2420" }}>
+                <h2 className="text-lg font-bold" style={{ color: "#c9a84c" }}>
+                  Студенти ({students.length})
+                </h2>
+              </div>
               {students.length === 0 ? (
-                <p className="text-sm" style={{ color: "#a09080" }}>Ще немає студентів.</p>
+                <p className="text-sm px-5 py-6" style={{ color: "#a09080" }}>Ще немає студентів.</p>
               ) : (
-                <div className="space-y-2">
-                  {students.map((s) => (
-                    <div
-                      key={s.email}
-                      className="flex items-center justify-between rounded-lg px-4 py-3"
-                      style={{ backgroundColor: "#0f0d0a", border: "1px solid #2a2420" }}
-                    >
-                      <div>
-                        <p className="font-medium text-sm">{s.name}</p>
-                        <p className="text-xs" style={{ color: "#a09080" }}>
-                          {s.email} · Старт: {s.startDate}
-                        </p>
-                      </div>
-                      <button
-                        onClick={() => handleDeleteStudent(s.email)}
-                        className="text-xs px-3 py-1 rounded"
-                        style={{ color: "#ff6b6b", border: "1px solid #3a2020" }}
-                      >
-                        Видалити
-                      </button>
-                    </div>
-                  ))}
+                <div className="overflow-x-auto">
+                  <table className="w-full text-sm">
+                    <thead>
+                      <tr style={{ borderBottom: "1px solid #2a2420" }}>
+                        {["Ім'я", "Email", "Старт", "Прогрес", "Дії"].map((h) => (
+                          <th key={h} className="px-4 py-2.5 text-left text-xs uppercase tracking-wider"
+                            style={{ color: "#6a5a50" }}>{h}</th>
+                        ))}
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {students.map((s, i) => {
+                        const watchedCnt = getWatchedCount(s.email);
+                        const pct = lessons.length > 0 ? Math.round((watchedCnt / lessons.length) * 100) : 0;
+                        return (
+                          <tr key={s.email}
+                            style={{ borderBottom: i < students.length - 1 ? "1px solid #1e1a16" : "none" }}>
+                            <td className="px-4 py-3 font-medium">{s.name}</td>
+                            <td className="px-4 py-3 text-xs" style={{ color: "#7a6a60" }}>{s.email}</td>
+                            <td className="px-4 py-3 text-xs" style={{ color: "#7a6a60" }}>{s.startDate}</td>
+                            <td className="px-4 py-3">
+                              <div className="flex items-center gap-2">
+                                <div className="w-16 h-1.5 rounded-full overflow-hidden" style={{ backgroundColor: "#2a2420" }}>
+                                  <div className="h-full rounded-full" style={{ width: `${pct}%`, backgroundColor: "#c9a84c" }} />
+                                </div>
+                                <span className="text-xs" style={{ color: "#c9a84c" }}>{watchedCnt}/{lessons.length}</span>
+                              </div>
+                            </td>
+                            <td className="px-4 py-3">
+                              <div className="flex items-center gap-2">
+                                <button
+                                  onClick={() => handleResetStartDate(s.email)}
+                                  className="text-xs px-2.5 py-1 rounded"
+                                  style={{ color: "#c9a84c", border: "1px solid rgba(201,168,76,0.3)", backgroundColor: "rgba(201,168,76,0.05)" }}
+                                  title="Скинути дату старту на сьогодні"
+                                >
+                                  ↺ Старт
+                                </button>
+                                <button
+                                  onClick={() => handleDeleteStudent(s.email)}
+                                  className="text-xs px-2.5 py-1 rounded"
+                                  style={{ color: "#ff6b6b", border: "1px solid #3a2020" }}
+                                >
+                                  Видалити
+                                </button>
+                              </div>
+                            </td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
                 </div>
               )}
             </div>

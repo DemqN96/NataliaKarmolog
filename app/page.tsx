@@ -30,7 +30,7 @@ export default function LandingPage() {
       </header>
 
       {/* ━━━━━━━━━━━━ 1. HERO ━━━━━━━━━━━━ */}
-      <section className="relative overflow-hidden min-h-screen flex items-center">
+      <section className="relative overflow-hidden min-h-screen flex items-center" style={{ marginTop: "-3.5rem" }}>
         <div className="absolute inset-0 pointer-events-none"
           style={{ background: "radial-gradient(ellipse at 70% 40%, rgba(201,168,76,0.13) 0%, transparent 60%)" }} />
         <GoldParticles />
