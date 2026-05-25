@@ -156,11 +156,15 @@ export default function LandingPage() {
         <div className="max-w-6xl mx-auto px-6">
           <div className="grid md:grid-cols-2 gap-14 items-center">
             <FadeIn direction="right">
-              <div className="flex gap-4" style={{ height: "28rem" }}>
-                <PhotoCard src="/natalia-2.jpg" alt="Наталія" className="flex-1 rounded-3xl w-full h-full"
-                  style={{ boxShadow: "0 20px 60px rgba(0,0,0,0.5)" }} />
-                <PhotoCard src="/natalia-3.jpg" alt="Наталія" className="flex-1 rounded-3xl w-full h-full mt-12"
-                  style={{ objectPosition: "center", boxShadow: "0 20px 60px rgba(0,0,0,0.5)" }} />
+              <div className="relative flex justify-center">
+                <div className="absolute -inset-6 rounded-3xl opacity-20 blur-2xl"
+                  style={{ background: "radial-gradient(circle, #c9a84c, transparent 70%)" }} />
+                <PhotoCard
+                  src="/natalia-2.jpg"
+                  alt="Наталія Войтович"
+                  className="relative rounded-3xl w-72 h-[32rem] md:w-80 md:h-[36rem]"
+                  style={{ boxShadow: "0 30px 80px rgba(0,0,0,0.6)", border: "1px solid rgba(201,168,76,0.2)" }}
+                />
               </div>
             </FadeIn>
             <FadeIn direction="left" delay={0.15}>
@@ -297,7 +301,7 @@ export default function LandingPage() {
       {/* ━━━━━━━━━━━━ FOOTER ━━━━━━━━━━━━ */}
       <footer className="py-8 text-center" style={{ borderTop: "1px solid #1e1a16" }}>
         <p className="text-sm" style={{ color: "#3a2a20" }}>
-          © 2024 Войтович Наталія · Курс «Стан Достатку»
+          © 2026 Войтович Наталія · Курс «Стан Достатку»
         </p>
       </footer>
 

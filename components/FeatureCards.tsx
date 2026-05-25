@@ -3,10 +3,10 @@
 import { motion } from "framer-motion";
 
 const features = [
-  { icon: "🔓", title: "Відео по днях", desc: "Уроки відкриваються поступово — кожен день новий матеріал для глибокої інтеграції" },
-  { icon: "🎯", title: "Практичні інструменти", desc: "Не тільки теорія — конкретні техніки та практики для реальної трансформації" },
-  { icon: "💰", title: "Фінансова карма", desc: "Розберемо фінансові програми, які передаються через покоління" },
-  { icon: "🌟", title: "Особистісне зростання", desc: "Комплексний підхід до створення життя достатку та гармонії" },
+  { title: "Відео по днях", desc: "Уроки відкриваються поступово — кожен день новий матеріал для глибокої інтеграції" },
+  { title: "Практичні інструменти", desc: "Не тільки теорія — конкретні техніки та практики для реальної трансформації" },
+  { title: "Фінансова карма", desc: "Розберемо фінансові програми, які передаються через покоління" },
+  { title: "Особистісне зростання", desc: "Комплексний підхід до створення життя достатку та гармонії" },
 ];
 
 const container = {
@@ -41,7 +41,7 @@ export default function FeatureCards() {
           style={{ backgroundColor: "#1a1612", border: "1px solid #2a2420", cursor: "default" }}
           transition={{ duration: 0.2 }}
         >
-          <div className="text-3xl mb-4">{f.icon}</div>
+          <div className="mb-5" style={{ width: "2rem", height: "2px", backgroundColor: "#c9a84c", borderRadius: "1px" }} />
           <h3 className="font-bold mb-2 text-base" style={{ color: "#f5f0e8", fontFamily: "var(--font-playfair)" }}>
             {f.title}
           </h3>
