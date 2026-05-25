@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { motion } from "framer-motion";
-import { getSession, type Student } from "@/lib/auth";
+import { getSession, hasCertificateAccess, type Student } from "@/lib/auth";
 import { getLessons, getUnlockedDays } from "@/lib/lessons";
 import { getWatched } from "@/lib/watched";
 import { getNote } from "@/lib/notes";
@@ -22,6 +22,7 @@ export default function ProfilePage() {
   const [student, setStudent] = useState<Student | null>(null);
   const [stats, setStats] = useState({ lessons: 0, watched: 0, notes: 0, days: 0 });
   const [badges, setBadges] = useState<Badge[]>([]);
+  const [certAccess, setCertAccess] = useState(false);
 
   useEffect(() => {
     const session = getSession();
@@ -37,6 +38,7 @@ export default function ProfilePage() {
     }).length;
 
     setStudent(session);
+    setCertAccess(hasCertificateAccess(session.email));
     setStats({ lessons: lessons.length, watched: watched.length, notes: noteCount, days: Math.max(0, days) });
 
     const pct = lessons.length > 0 ? (watched.length / lessons.length) * 100 : 0;
@@ -181,66 +183,125 @@ export default function ProfilePage() {
           ))}
         </div>
 
+        {/* Certificate block */}
+        <motion.div
+          className="rounded-3xl p-6 mb-8 relative overflow-hidden"
+          style={{
+            backgroundColor: certAccess ? "#1e1a0e" : "#1a1612",
+            border: `1px solid ${certAccess ? "rgba(201,168,76,0.45)" : "#2a2420"}`,
+            boxShadow: certAccess ? "0 0 50px rgba(201,168,76,0.1)" : "none",
+          }}
+          initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0.45 }}
+        >
+          {certAccess && (
+            <div className="absolute -top-8 -right-8 w-36 h-36 rounded-full pointer-events-none"
+              style={{ background: "radial-gradient(circle, rgba(201,168,76,0.18), transparent 70%)" }} />
+          )}
+          <div className="relative flex items-center gap-5">
+            <div
+              className="w-16 h-16 rounded-2xl flex items-center justify-center text-3xl flex-shrink-0"
+              style={{
+                backgroundColor: certAccess ? "rgba(201,168,76,0.15)" : "#13110e",
+                border: `1.5px solid ${certAccess ? "rgba(201,168,76,0.4)" : "#2a2420"}`,
+              }}
+            >
+              👑
+            </div>
+            <div className="flex-1">
+              <p className="font-bold text-base mb-0.5" style={{ fontFamily: "var(--font-playfair)", color: certAccess ? "#f5f0e8" : "#4a3a30" }}>
+                Сертифікат про завершення
+              </p>
+              <p className="text-xs" style={{ color: certAccess ? "#7a6a60" : "#2a2420" }}>
+                {certAccess ? "Доступний! Натисніть щоб отримати." : "Видається після завершення курсу."}
+              </p>
+            </div>
+            {certAccess ? (
+              <Link href="/complete">
+                <motion.button
+                  className="btn-gold px-5 py-3 text-sm flex-shrink-0"
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.97 }}
+                  animate={{ boxShadow: ["0 4px 20px rgba(201,168,76,0.3)", "0 4px 35px rgba(201,168,76,0.6)", "0 4px 20px rgba(201,168,76,0.3)"] }}
+                  transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+                >
+                  Отримати →
+                </motion.button>
+              </Link>
+            ) : (
+              <div className="flex-shrink-0 px-4 py-2.5 rounded-xl text-sm"
+                style={{ backgroundColor: "#13110e", border: "1px solid #2a2420", color: "#2a2420" }}>
+                🔒
+              </div>
+            )}
+          </div>
+        </motion.div>
+
         {/* Achievements */}
         <motion.div
           initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, delay: 0.5 }}
         >
-          <h3 className="text-lg font-bold mb-4" style={{ fontFamily: "var(--font-playfair)", color: "#f5f0e8" }}>
-            Досягнення
-          </h3>
-          <div className="space-y-3">
+          <div className="flex items-center gap-3 mb-5">
+            <h3 className="text-xl font-bold" style={{ fontFamily: "var(--font-playfair)", color: "#f5f0e8" }}>
+              Досягнення
+            </h3>
+            <span className="text-xs px-2.5 py-1 rounded-full"
+              style={{ backgroundColor: "rgba(201,168,76,0.1)", border: "1px solid rgba(201,168,76,0.2)", color: "#c9a84c" }}>
+              {badges.filter(b => b.unlocked).length}/{badges.length}
+            </span>
+          </div>
+
+          <div className="grid grid-cols-1 gap-3">
             {badges.map((b, i) => (
               <motion.div
                 key={b.id}
-                className="flex items-center gap-4 rounded-2xl p-4"
+                className="flex items-center gap-4 rounded-2xl p-5"
                 style={{
-                  backgroundColor: b.unlocked ? "rgba(201,168,76,0.06)" : "#1a1612",
-                  border: `1px solid ${b.unlocked ? "rgba(201,168,76,0.25)" : "#1e1a16"}`,
-                  opacity: b.unlocked ? 1 : 0.45,
+                  backgroundColor: b.unlocked ? "rgba(201,168,76,0.07)" : "#1a1612",
+                  border: `1px solid ${b.unlocked ? "rgba(201,168,76,0.3)" : "#1e1a16"}`,
+                  opacity: b.unlocked ? 1 : 0.4,
                 }}
-                initial={{ opacity: 0, x: -16 }} animate={{ opacity: b.unlocked ? 1 : 0.45, x: 0 }}
+                initial={{ opacity: 0, x: -16 }}
+                animate={{ opacity: b.unlocked ? 1 : 0.4, x: 0 }}
                 transition={{ duration: 0.4, delay: 0.55 + i * 0.07 }}
               >
                 <div
-                  className="w-12 h-12 rounded-full flex items-center justify-center text-2xl flex-shrink-0"
+                  className="w-14 h-14 rounded-2xl flex items-center justify-center text-2xl flex-shrink-0"
                   style={{
-                    backgroundColor: b.unlocked ? "rgba(201,168,76,0.12)" : "#13110e",
-                    border: `1.5px solid ${b.unlocked ? "rgba(201,168,76,0.35)" : "#2a2420"}`,
+                    backgroundColor: b.unlocked ? "rgba(201,168,76,0.15)" : "#13110e",
+                    border: `1.5px solid ${b.unlocked ? "rgba(201,168,76,0.4)" : "#2a2420"}`,
                   }}
                 >
                   {b.icon}
                 </div>
                 <div className="flex-1">
-                  <p className="font-semibold text-sm" style={{ color: b.unlocked ? "#f5f0e8" : "#3a2a20" }}>
+                  <p className="font-bold text-sm mb-0.5" style={{ color: b.unlocked ? "#f5f0e8" : "#3a2a20" }}>
                     {b.title}
                   </p>
-                  <p className="text-xs" style={{ color: b.unlocked ? "#6a5a50" : "#2a2420" }}>{b.desc}</p>
+                  <p className="text-xs leading-relaxed" style={{ color: b.unlocked ? "#7a6a60" : "#2a2420" }}>
+                    {b.desc}
+                  </p>
                 </div>
-                {b.unlocked && (
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#c9a84c" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                    <polyline points="20 6 9 17 4 12"/>
-                  </svg>
+                {b.unlocked ? (
+                  <div className="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0"
+                    style={{ backgroundColor: "rgba(201,168,76,0.15)", border: "1px solid rgba(201,168,76,0.3)" }}>
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#c9a84c" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                      <polyline points="20 6 9 17 4 12"/>
+                    </svg>
+                  </div>
+                ) : (
+                  <div className="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0"
+                    style={{ backgroundColor: "#13110e", border: "1px solid #2a2420" }}>
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#2a2420" strokeWidth="2">
+                      <rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+                    </svg>
+                  </div>
                 )}
               </motion.div>
             ))}
           </div>
         </motion.div>
-
-        {/* Complete link */}
-        {progressPct >= 50 && (
-          <motion.div
-            className="mt-8 text-center"
-            initial={{ opacity: 0 }} animate={{ opacity: 1 }}
-            transition={{ delay: 1 }}
-          >
-            <Link href="/complete">
-              <button className="btn-gold px-8 py-4">
-                👑 Отримати сертифікат →
-              </button>
-            </Link>
-          </motion.div>
-        )}
       </div>
     </main>
   );

@@ -4,7 +4,7 @@ import { useEffect, useState, useRef } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
-import { getSession, type Student } from "@/lib/auth";
+import { getSession, hasCertificateAccess, type Student } from "@/lib/auth";
 import { getLessons } from "@/lib/lessons";
 import { getWatchedCount } from "@/lib/watched";
 
@@ -75,9 +75,9 @@ export default function CompletePage() {
     if (!session) { router.replace("/login"); return; }
     const lessons = getLessons();
     const wCount = getWatchedCount(session.email);
-    // allow access if at least half the lessons are watched
-    if (wCount < Math.ceil(lessons.length / 2)) {
-      router.replace("/dashboard");
+    // allow access only if admin granted certificate
+    if (!hasCertificateAccess(session.email)) {
+      router.replace("/profile");
       return;
     }
     setStudent(session);

@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import {
-  addStudent, getStudents, saveStudents, ADMIN_PASSWORD, type Student,
+  addStudent, getStudents, saveStudents, toggleCertificate, ADMIN_PASSWORD, type Student,
 } from "@/lib/auth";
 import { getWatchedCount } from "@/lib/watched";
 import {
@@ -122,6 +122,11 @@ export default function AdminPage() {
     const updated = students.filter((s) => s.email !== email);
     saveStudents(updated);
     setStudents(updated);
+  }
+
+  function handleToggleCertificate(email: string) {
+    toggleCertificate(email);
+    setStudents(getStudents());
   }
 
   function handleResetStartDate(email: string) {
@@ -364,7 +369,19 @@ export default function AdminPage() {
                               </div>
                             </td>
                             <td className="px-4 py-3">
-                              <div className="flex items-center gap-2">
+                              <div className="flex items-center gap-2 flex-wrap">
+                                <button
+                                  onClick={() => handleToggleCertificate(s.email)}
+                                  className="text-xs px-2.5 py-1 rounded font-medium transition-all"
+                                  style={{
+                                    color: s.certificateUnlocked ? "#0f0d0a" : "#c9a84c",
+                                    border: `1px solid ${s.certificateUnlocked ? "#c9a84c" : "rgba(201,168,76,0.3)"}`,
+                                    backgroundColor: s.certificateUnlocked ? "#c9a84c" : "rgba(201,168,76,0.05)",
+                                  }}
+                                  title={s.certificateUnlocked ? "Забрати сертифікат" : "Видати сертифікат"}
+                                >
+                                  {s.certificateUnlocked ? "👑 Є" : "👑 Дати"}
+                                </button>
                                 <button
                                   onClick={() => handleResetStartDate(s.email)}
                                   className="text-xs px-2.5 py-1 rounded"

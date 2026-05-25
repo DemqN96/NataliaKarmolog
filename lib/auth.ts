@@ -3,6 +3,22 @@ export interface Student {
   name: string;
   startDate: string; // ISO date string
   password: string;
+  certificateUnlocked?: boolean;
+}
+
+export function toggleCertificate(email: string): boolean {
+  const students = getStudents();
+  const idx = students.findIndex((s) => s.email === email);
+  if (idx < 0) return false;
+  students[idx].certificateUnlocked = !students[idx].certificateUnlocked;
+  saveStudents(students);
+  return !!students[idx].certificateUnlocked;
+}
+
+export function hasCertificateAccess(email: string): boolean {
+  const students = getStudents();
+  const s = students.find((s) => s.email === email);
+  return !!s?.certificateUnlocked;
 }
 
 const STUDENTS_KEY = "sd_students";
