@@ -6,6 +6,7 @@ export interface Lesson {
   description: string;
   youtubeId: string;
   duration: string;
+  audioUrl?: string;
 }
 
 const LESSONS_KEY = "sd_lessons";

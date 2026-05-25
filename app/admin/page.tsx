@@ -10,7 +10,7 @@ import {
   moveLessonUp, moveLessonDown, type Lesson,
 } from "@/lib/lessons";
 
-const EMPTY_LESSON = { title: "", block: "", description: "", youtubeId: "", duration: "", day: 0 };
+const EMPTY_LESSON = { title: "", block: "", description: "", youtubeId: "", duration: "", day: 0, audioUrl: "" };
 
 export default function AdminPage() {
   const [auth, setAuth] = useState(false);
@@ -369,12 +369,13 @@ function LessonFormFields({
     { key: "day", label: "Відкривається на день №", type: "number", placeholder: "0" },
     { key: "duration", label: "Тривалість", type: "text", placeholder: "~30 хв" },
     { key: "description", label: "Опис", type: "text", placeholder: "Короткий опис уроку..." },
+    { key: "audioUrl", label: "Аудіо (пряме посилання на mp3/m4a)", type: "url", placeholder: "https://..." },
   ];
 
   return (
     <div className="grid md:grid-cols-2 gap-3">
       {fields.map((f) => (
-        <div key={f.key} className={f.key === "description" ? "md:col-span-2" : ""}>
+        <div key={f.key} className={(f.key === "description" || f.key === "audioUrl") ? "md:col-span-2" : ""}>
           <label className="block text-xs mb-1" style={{ color: "#a09080" }}>{f.label}</label>
           <input
             type={f.type}
