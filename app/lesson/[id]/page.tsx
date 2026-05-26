@@ -7,7 +7,7 @@ import { motion } from "framer-motion";
 import { getSession, type Student } from "@/lib/auth";
 import { getLessons, isLessonUnlocked, type Lesson } from "@/lib/lessons";
 import { getNote, saveNote } from "@/lib/notes";
-import { isWatched, markWatched } from "@/lib/watched";
+import { getWatched, isWatched, markWatched } from "@/lib/watched";
 
 export default function LessonPage() {
   const router = useRouter();
@@ -38,6 +38,7 @@ export default function LessonPage() {
 
   // Watched state
   const [watched, setWatched] = useState(false);
+  const [watchedIds, setWatchedIds] = useState<string[]>([]);
 
   // Tab state
   const [activeTab, setActiveTab] = useState<"notes" | "homework">("homework");
@@ -55,15 +56,23 @@ export default function LessonPage() {
   useEffect(() => {
     const session = getSession();
     if (!session) { router.replace("/login"); return; }
-    const all = getLessons();
-    const found = all.find((l) => l.id === String(params.id));
-    if (!found || !isLessonUnlocked(found, session.startDate)) { router.replace("/dashboard"); return; }
-    setStudent(session);
-    setLesson(found);
-    setLessons(all);
-    setNote(getNote(String(params.id), session.email));
-    setHwAnswer(getNote(`hw_${String(params.id)}`, session.email));
-    setWatched(isWatched(found.id, session.email));
+    (async () => {
+      const all = await getLessons();
+      const found = all.find((l) => l.id === String(params.id));
+      if (!found || !isLessonUnlocked(found, session.startDate)) { router.replace("/dashboard"); return; }
+      const [noteVal, hwVal, watchedAll] = await Promise.all([
+        getNote(String(params.id), session.email),
+        getNote(`hw_${String(params.id)}`, session.email),
+        getWatched(session.email),
+      ]);
+      setStudent(session);
+      setLesson(found);
+      setLessons(all);
+      setNote(noteVal);
+      setHwAnswer(hwVal);
+      setWatchedIds(watchedAll);
+      setWatched(watchedAll.includes(found.id));
+    })();
   }, [router, params.id]);
 
   // Auto-save notes with debounce
@@ -71,9 +80,9 @@ export default function LessonPage() {
     setNote(value);
     setNoteSaved(false);
     if (saveTimer.current) clearTimeout(saveTimer.current);
-    saveTimer.current = setTimeout(() => {
+    saveTimer.current = setTimeout(async () => {
       if (student && lesson) {
-        saveNote(lesson.id, student.email, value);
+        await saveNote(lesson.id, student.email, value);
         setNoteSaved(true);
         setTimeout(() => setNoteSaved(false), 2000);
       }
@@ -84,9 +93,9 @@ export default function LessonPage() {
     setHwAnswer(value);
     setHwSaved(false);
     if (hwTimer.current) clearTimeout(hwTimer.current);
-    hwTimer.current = setTimeout(() => {
+    hwTimer.current = setTimeout(async () => {
       if (student && lesson) {
-        saveNote(`hw_${lesson.id}`, student.email, value);
+        await saveNote(`hw_${lesson.id}`, student.email, value);
         setHwSaved(true);
         setTimeout(() => setHwSaved(false), 2000);
       }
@@ -148,8 +157,13 @@ export default function LessonPage() {
 
       {/* Header */}
       <motion.header
-        className="flex items-center justify-between px-6 py-4 sticky top-0 z-50 relative"
-        style={{ borderBottom: "1px solid #1e1a16", backgroundColor: "rgba(15,13,10,0.9)", backdropFilter: "blur(12px)" }}
+        className="flex items-center justify-between px-6 py-3.5 sticky top-0 z-50 relative"
+        style={{
+          borderBottom: "1px solid rgba(201,168,76,0.07)",
+          backgroundColor: "rgba(10,8,6,0.88)",
+          backdropFilter: "blur(20px)",
+          WebkitBackdropFilter: "blur(20px)",
+        }}
         initial={{ y: -60, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
         transition={{ duration: 0.5 }}
@@ -159,18 +173,23 @@ export default function LessonPage() {
           className="absolute bottom-0 left-0 h-[2px] transition-none"
           style={{
             width: `${scrollProgress * 100}%`,
-            background: "linear-gradient(90deg, #c9a84c, #f0d080)",
+            background: "linear-gradient(90deg, #c9a84c, #f0d080, #c9a84c)",
+            boxShadow: "0 0 8px rgba(201,168,76,0.5)",
           }}
         />
         <Link href="/dashboard">
-          <button className="flex items-center gap-2 text-sm transition-opacity hover:opacity-70"
-            style={{ color: "#a09080" }}>
+          <motion.button
+            className="flex items-center gap-2 text-sm"
+            style={{ color: "#6a5a50" }}
+            whileHover={{ color: "#a09080", x: -2 }}
+            transition={{ duration: 0.15 }}
+          >
             ← Назад до курсу
-          </button>
+          </motion.button>
         </Link>
         <motion.span
-          className="text-sm font-medium px-3 py-1 rounded-full"
-          style={{ color: "#c9a84c", backgroundColor: "rgba(201,168,76,0.1)", border: "1px solid rgba(201,168,76,0.2)" }}
+          className="text-xs font-medium px-3 py-1.5 rounded-full uppercase tracking-wider"
+          style={{ color: "#c9a84c", backgroundColor: "rgba(201,168,76,0.08)", border: "1px solid rgba(201,168,76,0.18)" }}
           initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.3 }}
         >
           {lesson.block}
@@ -182,51 +201,77 @@ export default function LessonPage() {
 
         {/* ── Sidebar (desktop only) ── */}
         <aside className="hidden lg:flex flex-col w-72 xl:w-80 flex-shrink-0 sticky top-[57px] h-[calc(100vh-57px)] overflow-y-auto"
-          style={{ backgroundColor: "#0d0b09", borderRight: "1px solid #1e1a16" }}>
-          <div className="px-4 py-4" style={{ borderBottom: "1px solid #1e1a16" }}>
-            <p className="text-xs uppercase tracking-widest mb-0.5" style={{ color: "#4a3a30" }}>Зміст курсу</p>
+          style={{ backgroundColor: "#09070604", borderRight: "1px solid rgba(201,168,76,0.07)" }}>
+          {/* Sidebar header */}
+          <div className="px-5 py-4 relative" style={{ borderBottom: "1px solid rgba(201,168,76,0.07)" }}>
+            <p className="text-[10px] uppercase tracking-[0.3em] mb-1" style={{ color: "rgba(201,168,76,0.4)" }}>Зміст курсу</p>
             <p className="text-sm font-bold" style={{ fontFamily: "var(--font-playfair)", color: "#c9a84c" }}>
               Стан Достатку
             </p>
+            {/* Progress mini bar */}
+            <div className="mt-3 h-0.5 rounded-full overflow-hidden" style={{ backgroundColor: "rgba(201,168,76,0.08)" }}>
+              <div className="h-full rounded-full" style={{
+                width: `${lessons.length > 0 ? (watchedIds.length / lessons.length) * 100 : 0}%`,
+                background: "linear-gradient(90deg, #c9a84c, #f0d080)",
+              }} />
+            </div>
+            <p className="text-[10px] mt-1" style={{ color: "rgba(201,168,76,0.3)" }}>
+              {watchedIds.length} / {lessons.length} переглянуто
+            </p>
           </div>
-          <nav className="py-2">
+          <nav className="py-1.5">
             {lessons.map((l, idx) => {
               const isUnlocked = isLessonUnlocked(l, student.startDate);
-              const isWatchedLesson = watched && l.id === lesson.id ? watched : false;
+              const isWatchedLesson = watchedIds.includes(l.id);
               const isCurrent = l.id === lesson.id;
               return (
                 <Link key={l.id} href={isUnlocked ? `/lesson/${l.id}` : "#"}>
                   <div
-                    className="flex items-center gap-3 px-4 py-3 transition-all cursor-pointer"
+                    className="flex items-center gap-3 px-4 py-2.5 transition-all cursor-pointer group"
                     style={{
-                      backgroundColor: isCurrent ? "rgba(201,168,76,0.08)" : "transparent",
+                      backgroundColor: isCurrent ? "rgba(201,168,76,0.07)" : "transparent",
                       borderLeft: `2px solid ${isCurrent ? "#c9a84c" : "transparent"}`,
-                      opacity: isUnlocked ? 1 : 0.4,
+                      opacity: isUnlocked ? 1 : 0.38,
                     }}
                   >
-                    <span className="text-xs w-5 text-center flex-shrink-0"
-                      style={{ color: isCurrent ? "#c9a84c" : "#3a2a20", fontFamily: "var(--font-playfair)" }}>
+                    {/* Index */}
+                    <span className="text-[10px] w-5 text-center flex-shrink-0 font-mono"
+                      style={{ color: isCurrent ? "#c9a84c" : isWatchedLesson ? "rgba(201,168,76,0.4)" : "#2a2420" }}>
                       {String(idx + 1).padStart(2, "0")}
                     </span>
+                    {/* Text */}
                     <div className="flex-1 min-w-0">
-                      <p className="text-[10px] uppercase tracking-wider mb-0.5" style={{ color: isCurrent ? "#c9a84c" : "#3a2a20" }}>
+                      <p className="text-[9px] uppercase tracking-wider mb-0.5" style={{ color: isCurrent ? "rgba(201,168,76,0.7)" : "#2a2420" }}>
                         {l.block}
                       </p>
-                      <p className="text-xs leading-snug" style={{ color: isCurrent ? "#f5f0e8" : isUnlocked ? "#7a6a60" : "#2a2420", fontWeight: isCurrent ? 600 : 400 }}>
+                      <p className="text-xs leading-snug truncate" style={{
+                        color: isCurrent ? "#f5f0e8" : isWatchedLesson ? "#7a6a50" : isUnlocked ? "#5a4a3a" : "#2a2420",
+                        fontWeight: isCurrent ? 600 : 400,
+                      }}>
                         {toSentenceCase(l.title)}
                       </p>
                     </div>
+                    {/* Status icon */}
                     <div className="flex-shrink-0">
                       {!isUnlocked ? (
-                        <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#2a2420" strokeWidth="2">
+                        <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="#221e1b" strokeWidth="2">
                           <rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>
                         </svg>
                       ) : isCurrent ? (
-                        <svg width="10" height="10" viewBox="0 0 24 24" fill="#c9a84c"><polygon points="5,3 19,12 5,21"/></svg>
+                        <div className="w-5 h-5 rounded-full flex items-center justify-center"
+                          style={{ backgroundColor: "rgba(201,168,76,0.15)", border: "1px solid rgba(201,168,76,0.4)" }}>
+                          <svg width="8" height="8" viewBox="0 0 24 24" fill="#c9a84c"><polygon points="5,3 19,12 5,21"/></svg>
+                        </div>
+                      ) : isWatchedLesson ? (
+                        <div className="w-4 h-4 rounded-full flex items-center justify-center"
+                          style={{ backgroundColor: "rgba(201,168,76,0.1)", border: "1px solid rgba(201,168,76,0.25)" }}>
+                          <svg width="7" height="7" viewBox="0 0 24 24" fill="none" stroke="#c9a84c" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                            <polyline points="20 6 9 17 4 12"/>
+                          </svg>
+                        </div>
                       ) : (
-                        <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#3a3430" strokeWidth="2.5" strokeLinecap="round">
-                          <polyline points="20 6 9 17 4 12"/>
-                        </svg>
+                        <div className="w-3 h-3 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+                          style={{ border: "1px solid #2a2420" }} />
                       )}
                     </div>
                   </div>
@@ -265,47 +310,65 @@ export default function LessonPage() {
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.6, delay: 0.3 }}
       >
-        <p className="text-xs uppercase tracking-widest mb-3" style={{ color: "#c9a84c" }}>
+        {/* Block tag */}
+        <span className="inline-block text-[10px] uppercase tracking-[0.3em] px-3 py-1.5 rounded-full mb-4"
+          style={{ color: "#c9a84c", backgroundColor: "rgba(201,168,76,0.08)", border: "1px solid rgba(201,168,76,0.15)" }}>
           {lesson.block}
-        </p>
-        <h1 className="text-2xl md:text-3xl font-bold mb-3" style={{ fontFamily: "var(--font-playfair)" }}>
+        </span>
+        <h1 className="text-2xl md:text-3xl font-bold mb-3" style={{ fontFamily: "var(--font-playfair)", lineHeight: 1.3 }}>
           {lesson.title}
         </h1>
-        <p className="text-base mb-6" style={{ color: "#7a6a60" }}>{lesson.description}</p>
+        <p className="text-sm mb-6 leading-relaxed" style={{ color: "#6a5a50" }}>{lesson.description}</p>
 
         {/* ── Mark as Watched ── */}
         <motion.button
-          onClick={() => {
+          onClick={async () => {
             if (!watched && student && lesson) {
-              markWatched(lesson.id, student.email);
+              await markWatched(lesson.id, student.email);
               setWatched(true);
+              setWatchedIds(prev => [...prev, lesson.id]);
             }
           }}
-          className="flex items-center gap-2.5 px-5 py-3 rounded-xl mb-8 text-sm font-medium transition-all"
+          className="flex items-center gap-3 px-6 py-3.5 rounded-2xl mb-10 text-sm font-medium relative overflow-hidden"
           style={{
-            backgroundColor: watched ? "rgba(201,168,76,0.12)" : "#1a1612",
-            border: `1px solid ${watched ? "rgba(201,168,76,0.4)" : "#2a2420"}`,
-            color: watched ? "#c9a84c" : "#6a5a50",
+            backgroundColor: watched ? "rgba(201,168,76,0.1)" : "#161210",
+            border: `1.5px solid ${watched ? "rgba(201,168,76,0.45)" : "#2a2420"}`,
+            color: watched ? "#c9a84c" : "#5a4a40",
             cursor: watched ? "default" : "pointer",
+            boxShadow: watched ? "0 4px 20px rgba(201,168,76,0.12)" : "none",
           }}
+          whileHover={!watched ? {
+            borderColor: "rgba(201,168,76,0.35)",
+            color: "#a09070",
+            boxShadow: "0 4px 20px rgba(201,168,76,0.07)",
+          } : {}}
           whileTap={!watched ? { scale: 0.97 } : {}}
-          animate={watched ? { scale: [1, 1.05, 1] } : {}}
+          animate={watched ? { scale: [1, 1.04, 1] } : {}}
           transition={{ duration: 0.3 }}
         >
-          <motion.span
+          {watched && (
+            <div className="absolute inset-0 pointer-events-none"
+              style={{ background: "linear-gradient(90deg, rgba(201,168,76,0.05), transparent)" }} />
+          )}
+          <motion.div
+            className="w-7 h-7 rounded-full flex items-center justify-center flex-shrink-0"
+            style={{
+              backgroundColor: watched ? "rgba(201,168,76,0.15)" : "rgba(255,255,255,0.04)",
+              border: `1px solid ${watched ? "rgba(201,168,76,0.4)" : "#2a2420"}`,
+            }}
             animate={watched ? { rotate: [0, 360] } : {}}
-            transition={{ duration: 0.4 }}
+            transition={{ duration: 0.5, ease: "easeOut" }}
           >
             {watched ? (
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#c9a84c" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#c9a84c" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                 <polyline points="20 6 9 17 4 12" />
               </svg>
             ) : (
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#6a5a50" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#5a4a40" strokeWidth="2" strokeLinecap="round">
                 <circle cx="12" cy="12" r="10"/><polyline points="12 8 12 12 14 14"/>
               </svg>
             )}
-          </motion.span>
+          </motion.div>
           {watched ? "Урок переглянуто ✓" : "Позначити як переглянутий"}
         </motion.button>
 
@@ -417,13 +480,13 @@ export default function LessonPage() {
         {/* ── Tabs: Завдання / Нотатки ── */}
         <motion.div
           className="rounded-2xl overflow-hidden mb-10"
-          style={{ border: "1px solid #2a2420" }}
+          style={{ border: "1px solid rgba(201,168,76,0.1)" }}
           initial={{ opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.55 }}
         >
           {/* Tab bar */}
-          <div className="flex" style={{ backgroundColor: "#1a1612", borderBottom: "1px solid #2a2420" }}>
+          <div className="flex" style={{ backgroundColor: "#121008", borderBottom: "1px solid rgba(201,168,76,0.08)" }}>
             {([
               { id: "homework", label: "Завдання", icon: "✦" },
               { id: "notes",    label: "Нотатки",  icon: "✍" },
@@ -431,31 +494,34 @@ export default function LessonPage() {
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
-                className="flex items-center gap-2 px-5 py-3 text-xs uppercase tracking-widest transition-all relative"
+                className="flex items-center gap-2 px-6 py-3.5 text-xs uppercase tracking-[0.15em] transition-all relative"
                 style={{
                   color: activeTab === tab.id ? "#c9a84c" : "#4a3a30",
                   fontWeight: activeTab === tab.id ? 600 : 400,
+                  backgroundColor: activeTab === tab.id ? "rgba(201,168,76,0.05)" : "transparent",
                 }}
               >
-                <span>{tab.icon}</span>
+                <span style={{ fontSize: "10px" }}>{tab.icon}</span>
                 {tab.label}
                 {activeTab === tab.id && (
                   <motion.div
                     layoutId="tab-underline"
-                    className="absolute bottom-0 left-0 right-0 h-0.5"
-                    style={{ backgroundColor: "#c9a84c" }}
+                    className="absolute bottom-0 left-0 right-0 h-[2px]"
+                    style={{ background: "linear-gradient(90deg, transparent, #c9a84c, transparent)" }}
                   />
                 )}
               </button>
             ))}
             {/* Save indicator */}
             <div className="ml-auto flex items-center px-4">
-              <span
-                className="text-xs transition-opacity duration-300"
-                style={{ color: "#4a3a30", opacity: (activeTab === "notes" ? noteSaved : hwSaved) ? 1 : 0 }}
+              <motion.span
+                className="text-xs"
+                style={{ color: "#6a5a40" }}
+                animate={{ opacity: (activeTab === "notes" ? noteSaved : hwSaved) ? 1 : 0 }}
+                transition={{ duration: 0.3 }}
               >
                 збережено ✓
-              </span>
+              </motion.span>
             </div>
           </div>
 
@@ -507,12 +573,21 @@ export default function LessonPage() {
           {/* Tab: Нотатки */}
           {activeTab === "notes" && (
             <div style={{ backgroundColor: "#13110e" }}>
+              {/* Privacy notice */}
+              <div className="flex items-center gap-2 px-5 pt-4 pb-2">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#4a3a30" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+                </svg>
+                <span className="text-xs" style={{ color: "#4a3a30" }}>
+                  Нотатки бачите тільки ви — вони приватні
+                </span>
+              </div>
               <textarea
                 value={note}
                 onChange={(e) => handleNoteChange(e.target.value)}
                 placeholder="Записуйте думки, інсайти, практики з цього уроку…&#10;&#10;Нотатки зберігаються автоматично."
                 rows={10}
-                className="w-full px-5 py-4 text-sm leading-relaxed outline-none resize-none"
+                className="w-full px-5 py-3 text-sm leading-relaxed outline-none resize-none"
                 style={{
                   backgroundColor: "transparent",
                   color: "#d4c9b8",
@@ -531,35 +606,50 @@ export default function LessonPage() {
 
         {/* Navigation */}
         <div className="flex justify-between gap-4">
-          <div>
+          <div className="flex-1">
             {prevLesson && (
               <Link href={`/lesson/${prevLesson.id}`}>
                 <motion.button
-                  className="text-sm px-5 py-3 rounded-xl"
-                  style={{ backgroundColor: "#1a1612", border: "1px solid #2a2420", color: "#d4c9b8" }}
-                  whileHover={{ scale: 1.02, borderColor: "#3a3420" }}
+                  className="flex items-center gap-2 text-sm px-5 py-3.5 rounded-2xl w-full"
+                  style={{
+                    backgroundColor: "#110f0c",
+                    border: "1px solid #1e1a16",
+                    color: "#7a6a60",
+                  }}
+                  whileHover={{ borderColor: "rgba(201,168,76,0.2)", color: "#a09080", x: -2 }}
                   whileTap={{ scale: 0.98 }}
+                  transition={{ duration: 0.15 }}
                 >
-                  ← {prevLesson.title}
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+                    <polyline points="15 18 9 12 15 6"/>
+                  </svg>
+                  <span className="truncate text-left">{toSentenceCase(prevLesson.title)}</span>
                 </motion.button>
               </Link>
             )}
           </div>
-          <div>
+          <div className="flex-1 flex justify-end">
             {nextLesson && (
               nextUnlocked ? (
-                <Link href={`/lesson/${nextLesson.id}`}>
+                <Link href={`/lesson/${nextLesson.id}`} className="w-full">
                   <motion.button
-                    className="btn-gold text-sm px-5 py-3"
-                    whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}
+                    className="btn-gold text-sm px-5 py-3.5 w-full flex items-center justify-end gap-2"
+                    whileHover={{ scale: 1.02, x: 2 }} whileTap={{ scale: 0.97 }}
+                    transition={{ duration: 0.15 }}
                   >
-                    {nextLesson.title} →
+                    <span className="truncate">{toSentenceCase(nextLesson.title)}</span>
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+                      <polyline points="9 18 15 12 9 6"/>
+                    </svg>
                   </motion.button>
                 </Link>
               ) : (
-                <div className="text-sm px-5 py-3 rounded-xl flex items-center gap-2"
-                  style={{ backgroundColor: "#1a1612", border: "1px solid #2a2420", color: "#4a3a30" }}>
-                  🔒 Відкриється пізніше
+                <div className="text-sm px-5 py-3.5 rounded-2xl flex items-center gap-2 w-full justify-end"
+                  style={{ backgroundColor: "#110f0c", border: "1px solid #1e1a16", color: "#3a2a20" }}>
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#3a2a20" strokeWidth="2">
+                    <rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+                  </svg>
+                  Відкриється пізніше
                 </div>
               )
             )}

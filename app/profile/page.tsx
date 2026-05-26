@@ -7,7 +7,7 @@ import { motion } from "framer-motion";
 import { getSession, hasCertificateAccess, updateStudent, type Student } from "@/lib/auth";
 import { getLessons, getUnlockedDays } from "@/lib/lessons";
 import { getWatched } from "@/lib/watched";
-import { getNote } from "@/lib/notes";
+import { getNoteCount } from "@/lib/notes";
 
 interface Badge {
   id: string;
@@ -25,66 +25,38 @@ export default function ProfilePage() {
   const [certAccess, setCertAccess] = useState(false);
 
   // Settings form
-  const [settingsForm, setSettingsForm] = useState({ email: "", newPassword: "", birthday: "" });
+  const [settingsForm, setSettingsForm] = useState({ newPassword: "", confirmPassword: "", birthday: "" });
   const [showPassNew, setShowPassNew] = useState(false);
+  const [showPassConfirm, setShowPassConfirm] = useState(false);
   const [settingsMsg, setSettingsMsg] = useState<{ text: string; ok: boolean } | null>(null);
 
   useEffect(() => {
     const session = getSession();
     if (!session) { router.replace("/login"); return; }
-    const lessons = getLessons();
-    const watched = getWatched(session.email);
     const days = getUnlockedDays(session.startDate);
-
-    // Count notes
-    const noteCount = lessons.filter((l) => {
-      const n = getNote(l.id, session.email);
-      return n && n.trim().length > 0;
-    }).length;
-
     setStudent(session);
-    setCertAccess(hasCertificateAccess(session.email));
-    setSettingsForm({ email: session.email, newPassword: "", birthday: session.birthday ?? "" });
-    setStats({ lessons: lessons.length, watched: watched.length, notes: noteCount, days: Math.max(0, days) });
+    setSettingsForm({ newPassword: "", confirmPassword: "", birthday: session.birthday ?? "" });
 
-    const pct = lessons.length > 0 ? (watched.length / lessons.length) * 100 : 0;
-    setBadges([
-      {
-        id: "first",
-        icon: "🌱",
-        title: "Перший крок",
-        desc: "Переглянути перший урок",
-        unlocked: watched.length >= 1,
-      },
-      {
-        id: "halfway",
-        icon: "⚡",
-        title: "Середина шляху",
-        desc: "Переглянути 50% курсу",
-        unlocked: pct >= 50,
-      },
-      {
-        id: "notes",
-        icon: "✍️",
-        title: "Нотатник",
-        desc: "Зробити нотатки до 3 уроків",
-        unlocked: noteCount >= 3,
-      },
-      {
-        id: "streak",
-        icon: "🔥",
-        title: "Регулярність",
-        desc: "7 днів у курсі",
-        unlocked: days >= 7,
-      },
-      {
-        id: "complete",
-        icon: "👑",
-        title: "Майстер достатку",
-        desc: "Завершити весь курс",
-        unlocked: pct >= 100,
-      },
-    ]);
+    (async () => {
+      const [lessons, watched, noteCount, certAccess] = await Promise.all([
+        getLessons(),
+        getWatched(session.email),
+        getNoteCount(session.email),
+        hasCertificateAccess(session.email),
+      ]);
+
+      setCertAccess(certAccess);
+      setStats({ lessons: lessons.length, watched: watched.length, notes: noteCount, days: Math.max(0, days) });
+
+      const pct = lessons.length > 0 ? (watched.length / lessons.length) * 100 : 0;
+      setBadges([
+        { id: "first",    icon: "🌱",  title: "Перший крок",      desc: "Переглянути перший урок",      unlocked: watched.length >= 1 },
+        { id: "halfway",  icon: "⚡",  title: "Середина шляху",   desc: "Переглянути 50% курсу",        unlocked: pct >= 50 },
+        { id: "notes",    icon: "✍️", title: "Нотатник",          desc: "Зробити нотатки до 3 уроків",  unlocked: noteCount >= 3 },
+        { id: "streak",   icon: "🔥",  title: "Регулярність",     desc: "7 днів у курсі",               unlocked: days >= 7 },
+        { id: "complete", icon: "👑",  title: "Майстер достатку", desc: "Завершити весь курс",           unlocked: pct >= 100 },
+      ]);
+    })();
   }, [router]);
 
   if (!student) return null;
@@ -99,22 +71,32 @@ export default function ProfilePage() {
   ];
 
   return (
-    <main className="min-h-screen" style={{ backgroundColor: "#0f0d0a", color: "#f5f0e8" }}>
+    <main className="min-h-screen" style={{ backgroundColor: "#0a0806", color: "#f5f0e8" }}>
 
       {/* Header */}
       <motion.header
-        className="flex items-center justify-between px-6 py-4 sticky top-0 z-50"
-        style={{ borderBottom: "1px solid #1e1a16", backgroundColor: "rgba(15,13,10,0.9)", backdropFilter: "blur(12px)" }}
+        className="flex items-center justify-between px-6 py-3.5 sticky top-0 z-50"
+        style={{
+          borderBottom: "1px solid rgba(201,168,76,0.07)",
+          backgroundColor: "rgba(10,8,6,0.88)",
+          backdropFilter: "blur(20px)",
+          WebkitBackdropFilter: "blur(20px)",
+        }}
         initial={{ y: -40, opacity: 0 }} animate={{ y: 0, opacity: 1 }}
         transition={{ duration: 0.5 }}
       >
         <Link href="/dashboard">
-          <button className="flex items-center gap-2 text-sm hover:opacity-70 transition-opacity" style={{ color: "#a09080" }}>
+          <motion.button
+            className="flex items-center gap-2 text-sm"
+            style={{ color: "#5a4a40" }}
+            whileHover={{ color: "#a09080", x: -2 }}
+            transition={{ duration: 0.15 }}
+          >
             ← До курсу
-          </button>
+          </motion.button>
         </Link>
         <h1 className="text-lg font-bold" style={{ fontFamily: "var(--font-playfair)" }}>
-          Мій <span style={{ color: "#c9a84c" }}>профіль</span>
+          Мій <span className="text-gold-gradient">профіль</span>
         </h1>
         <div className="w-20" />
       </motion.header>
@@ -175,12 +157,14 @@ export default function ProfilePage() {
           {statCards.map((s, i) => (
             <motion.div
               key={s.label}
-              className="rounded-2xl p-4"
-              style={{ backgroundColor: "#1a1612", border: "1px solid #2a2420" }}
+              className="rounded-2xl p-4 relative overflow-hidden card-hover"
+              style={{ backgroundColor: "#121008", border: "1px solid rgba(201,168,76,0.08)" }}
               initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.4, delay: 0.25 + i * 0.08 }}
             >
-              <p className="text-xs mb-1" style={{ color: "#4a3a30" }}>{s.icon} {s.label}</p>
+              <div className="absolute top-0 right-0 w-20 h-20 pointer-events-none"
+                style={{ background: "radial-gradient(circle at 100% 0%, rgba(201,168,76,0.05), transparent 70%)" }} />
+              <p className="text-[11px] mb-2" style={{ color: "#4a3a30" }}>{s.icon} {s.label}</p>
               <p className="text-2xl font-bold" style={{ color: "#c9a84c", fontFamily: "var(--font-playfair)" }}>
                 {s.value}
                 {"total" in s && <span className="text-sm font-normal" style={{ color: "#2a2420" }}> /{s.total}</span>}
@@ -326,20 +310,6 @@ export default function ProfilePage() {
 
             <div className="px-6 py-5 space-y-4" style={{ backgroundColor: "#13110e" }}>
 
-              {/* Email / login */}
-              <div>
-                <label className="block text-xs mb-1.5 uppercase tracking-wider" style={{ color: "#6a5a50" }}>
-                  Логін (Email)
-                </label>
-                <input
-                  type="email"
-                  value={settingsForm.email}
-                  onChange={(e) => setSettingsForm(f => ({ ...f, email: e.target.value }))}
-                  className="w-full rounded-xl px-4 py-3 text-sm outline-none"
-                  style={{ backgroundColor: "#1a1612", border: "1px solid #2a2420", color: "#f5f0e8", caretColor: "#c9a84c" }}
-                />
-              </div>
-
               {/* New password */}
               <div>
                 <label className="block text-xs mb-1.5 uppercase tracking-wider" style={{ color: "#6a5a50" }}>
@@ -361,6 +331,31 @@ export default function ProfilePage() {
                     style={{ color: "#6a5a50" }}
                   >
                     {showPassNew ? "Сховати" : "Показати"}
+                  </button>
+                </div>
+              </div>
+
+              {/* Confirm password */}
+              <div>
+                <label className="block text-xs mb-1.5 uppercase tracking-wider" style={{ color: "#6a5a50" }}>
+                  Підтвердження паролю
+                </label>
+                <div className="relative">
+                  <input
+                    type={showPassConfirm ? "text" : "password"}
+                    value={settingsForm.confirmPassword}
+                    onChange={(e) => setSettingsForm(f => ({ ...f, confirmPassword: e.target.value }))}
+                    placeholder="Повторіть новий пароль"
+                    className="w-full rounded-xl px-4 py-3 text-sm outline-none pr-12"
+                    style={{ backgroundColor: "#1a1612", border: "1px solid #2a2420", color: "#f5f0e8", caretColor: "#c9a84c" }}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassConfirm(v => !v)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-xs px-2 py-1 rounded transition-opacity hover:opacity-70"
+                    style={{ color: "#6a5a50" }}
+                  >
+                    {showPassConfirm ? "Сховати" : "Показати"}
                   </button>
                 </div>
               </div>
@@ -387,13 +382,18 @@ export default function ProfilePage() {
               )}
 
               <button
-                onClick={() => {
+                onClick={async () => {
                   if (!student) return;
                   const updates: Parameters<typeof updateStudent>[1] = {};
-                  if (settingsForm.email && settingsForm.email !== student.email)
-                    updates.email = settingsForm.email.trim();
-                  if (settingsForm.newPassword.trim())
+
+                  if (settingsForm.newPassword.trim()) {
+                    if (settingsForm.newPassword !== settingsForm.confirmPassword) {
+                      setSettingsMsg({ text: "Паролі не співпадають", ok: false });
+                      return;
+                    }
                     updates.password = settingsForm.newPassword.trim();
+                  }
+
                   if (settingsForm.birthday !== (student.birthday ?? ""))
                     updates.birthday = settingsForm.birthday;
 
@@ -401,10 +401,10 @@ export default function ProfilePage() {
                     setSettingsMsg({ text: "Нічого не змінено", ok: false });
                     return;
                   }
-                  const res = updateStudent(student.email, updates);
+                  const res = await updateStudent(student.email, updates);
                   if (res.ok && res.student) {
                     setStudent(res.student);
-                    setSettingsForm(f => ({ ...f, newPassword: "" }));
+                    setSettingsForm(f => ({ ...f, newPassword: "", confirmPassword: "" }));
                     setSettingsMsg({ text: "Збережено ✓", ok: true });
                     setTimeout(() => setSettingsMsg(null), 3000);
                   } else {

@@ -20,9 +20,11 @@ export default function DashboardPage() {
     const session = getSession();
     if (!session) { router.replace("/login"); return; }
     setStudent(session);
-    const all = getLessons();
-    setLessons(all);
-    setWatched(getWatched(session.email));
+    (async () => {
+      const [all, w] = await Promise.all([getLessons(), getWatched(session.email)]);
+      setLessons(all);
+      setWatched(w);
+    })();
   }, [router]);
 
   // scroll to active lesson
@@ -50,71 +52,100 @@ export default function DashboardPage() {
   )?.id ?? null;
 
   return (
-    <main className="min-h-screen" style={{ backgroundColor: "#0f0d0a", color: "#f5f0e8" }}>
+    <main className="min-h-screen" style={{ backgroundColor: "#0a0806", color: "#f5f0e8" }}>
 
       {/* Header */}
       <motion.header
-        className="flex items-center justify-between px-6 py-4 sticky top-0 z-50"
-        style={{ borderBottom: "1px solid #1e1a16", backgroundColor: "rgba(15,13,10,0.9)", backdropFilter: "blur(12px)" }}
+        className="flex items-center justify-between px-6 py-3.5 sticky top-0 z-50"
+        style={{
+          borderBottom: "1px solid rgba(201,168,76,0.08)",
+          backgroundColor: "rgba(10,8,6,0.88)",
+          backdropFilter: "blur(20px)",
+          WebkitBackdropFilter: "blur(20px)",
+        }}
         initial={{ y: -60, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
         transition={{ duration: 0.5, ease: "easeOut" }}
       >
         <Link href="/">
           <h1 className="text-xl font-bold" style={{ fontFamily: "var(--font-playfair)" }}>
-            Стан <span style={{ color: "#c9a84c" }}>Достатку</span>
+            Стан <span className="text-gold-gradient">Достатку</span>
           </h1>
         </Link>
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2.5">
           <Link href="/profile">
-            <div className="w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold cursor-pointer transition-all hover:scale-105"
+            <motion.div
+              className="w-9 h-9 rounded-full flex items-center justify-center text-sm font-bold cursor-pointer"
               style={{
-                background: "rgba(201,168,76,0.1)",
-                border: "1px solid rgba(201,168,76,0.25)",
+                background: "linear-gradient(135deg, rgba(201,168,76,0.2), rgba(201,168,76,0.06))",
+                border: "1.5px solid rgba(201,168,76,0.35)",
                 color: "#c9a84c",
                 fontFamily: "var(--font-playfair)",
-              }}>
+              }}
+              whileHover={{ scale: 1.08 }}
+              whileTap={{ scale: 0.95 }}
+            >
               {student.name.charAt(0).toUpperCase()}
-            </div>
+            </motion.div>
           </Link>
-          <span className="text-sm hidden sm:block" style={{ color: "#7a6a60" }}>{student.name}</span>
+          <span className="text-sm hidden sm:block" style={{ color: "#5a4a40" }}>{student.name}</span>
           <Link href="/profile">
-            <button className="text-sm px-4 py-2 rounded-lg transition-all hover:opacity-80"
-              style={{ color: "#c9a84c", border: "1px solid rgba(201,168,76,0.3)", backgroundColor: "rgba(201,168,76,0.06)" }}>
-              Мій профіль
-            </button>
+            <motion.button
+              className="text-sm px-4 py-2 rounded-xl transition-all"
+              style={{ color: "#c9a84c", border: "1px solid rgba(201,168,76,0.25)", backgroundColor: "rgba(201,168,76,0.05)" }}
+              whileHover={{ backgroundColor: "rgba(201,168,76,0.1)", borderColor: "rgba(201,168,76,0.4)" }}
+            >
+              Профіль
+            </motion.button>
           </Link>
-          <button onClick={handleLogout}
-            className="text-sm px-4 py-2 rounded-lg transition-all hover:opacity-70"
-            style={{ color: "#7a6a60", border: "1px solid #2a2420" }}>
+          <motion.button
+            onClick={handleLogout}
+            className="text-sm px-4 py-2 rounded-xl transition-all"
+            style={{ color: "#5a4a40", border: "1px solid #1e1a16" }}
+            whileHover={{ color: "#7a6a60", borderColor: "#2a2420" }}
+          >
             Вийти
-          </button>
+          </motion.button>
         </div>
       </motion.header>
 
-      <div className="max-w-3xl mx-auto px-5 py-10">
+      {/* Ambient top glow */}
+      <div className="absolute top-0 left-0 right-0 h-64 pointer-events-none"
+        style={{ background: "radial-gradient(ellipse 80% 50% at 50% -20%, rgba(201,168,76,0.07), transparent)" }} />
+
+      <div className="max-w-3xl mx-auto px-5 py-10 relative">
 
         {/* Welcome */}
         <motion.div className="mb-8"
           initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, delay: 0.1 }}>
-          <h2 className="text-3xl font-bold mb-1" style={{ fontFamily: "var(--font-playfair)" }}>
-            Вітаємо, {student.name}!
+          <p className="text-xs uppercase tracking-[0.3em] mb-2" style={{ color: "rgba(201,168,76,0.5)" }}>
+            Особистий кабінет
+          </p>
+          <h2 className="text-3xl font-bold mb-1.5" style={{ fontFamily: "var(--font-playfair)" }}>
+            Вітаємо, <span className="text-gold-gradient">{student.name}</span>!
           </h2>
-          <p className="text-sm" style={{ color: "#6a5a50" }}>
+          <p className="text-sm" style={{ color: "#5a4a40" }}>
             {dayNum < 0
-              ? "Курс ще не розпочався — зовсім скоро!"
+              ? "Курс ще не розпочався — зовсім скоро ✦"
               : `День ${dayNum + 1} — продовжуйте, ви на правильному шляху ✦`}
           </p>
         </motion.div>
 
         {/* Progress card */}
         <motion.div
-          className="rounded-2xl p-5 mb-8 flex items-center gap-6"
-          style={{ backgroundColor: "#1a1612", border: "1px solid #2a2420" }}
+          className="rounded-2xl p-5 mb-8 flex items-center gap-6 relative overflow-hidden"
+          style={{
+            backgroundColor: "#13110d",
+            border: "1px solid rgba(201,168,76,0.12)",
+            boxShadow: "0 4px 30px rgba(0,0,0,0.4), 0 0 0 1px rgba(201,168,76,0.04) inset",
+          }}
           initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, delay: 0.2 }}
         >
+          {/* Card inner glow */}
+          <div className="absolute top-0 right-0 w-48 h-48 pointer-events-none"
+            style={{ background: "radial-gradient(circle at 100% 0%, rgba(201,168,76,0.06), transparent 60%)" }} />
           {/* SVG Ring */}
           <div className="flex-shrink-0 relative">
             <svg width="110" height="110" viewBox="0 0 120 120">
@@ -217,23 +248,34 @@ function LessonCard({
     <motion.div
       className="rounded-2xl flex items-center gap-4 p-4 cursor-pointer relative overflow-hidden"
       style={{
-        backgroundColor: "#1a1612",
-        border: `1px solid ${isActive ? "rgba(201,168,76,0.5)" : watched ? "rgba(201,168,76,0.15)" : unlocked ? "#2a2010" : "#1e1a16"}`,
-        opacity: unlocked ? 1 : 0.5,
+        backgroundColor: isActive ? "#161210" : watched ? "#131108" : "#110f0c",
+        border: `1px solid ${isActive ? "rgba(201,168,76,0.45)" : watched ? "rgba(201,168,76,0.12)" : unlocked ? "#1e1a10" : "#181410"}`,
+        opacity: unlocked ? 1 : 0.45,
+        boxShadow: isActive ? "0 4px 25px rgba(201,168,76,0.1), inset 0 0 30px rgba(201,168,76,0.03)" : "none",
       }}
       whileHover={unlocked ? {
-        scale: 1.01,
-        borderColor: "rgba(201,168,76,0.35)",
-        boxShadow: "0 8px 30px rgba(201,168,76,0.08)",
+        scale: 1.012,
+        borderColor: isActive ? "rgba(201,168,76,0.6)" : "rgba(201,168,76,0.3)",
+        boxShadow: "0 8px 35px rgba(201,168,76,0.1)",
       } : {}}
       whileTap={unlocked ? { scale: 0.99 } : {}}
-      transition={{ duration: 0.2 }}
+      transition={{ duration: 0.18 }}
       onClick={() => unlocked && router.push(`/lesson/${lesson.id}`)}
     >
+      {/* Active shimmer line left */}
+      {isActive && (
+        <div className="absolute left-0 top-3 bottom-3 w-0.5 rounded-full"
+          style={{ background: "linear-gradient(180deg, transparent, #c9a84c, transparent)" }} />
+      )}
       {/* Active glow */}
       {isActive && (
         <div className="absolute inset-0 pointer-events-none rounded-2xl"
-          style={{ background: "linear-gradient(90deg, rgba(201,168,76,0.04) 0%, transparent 60%)" }} />
+          style={{ background: "linear-gradient(105deg, rgba(201,168,76,0.05) 0%, transparent 55%)" }} />
+      )}
+      {/* Watched subtle tint */}
+      {watched && !isActive && (
+        <div className="absolute inset-0 pointer-events-none rounded-2xl"
+          style={{ background: "linear-gradient(105deg, rgba(201,168,76,0.025) 0%, transparent 50%)" }} />
       )}
 
       {/* Number */}

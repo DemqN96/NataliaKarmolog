@@ -3,11 +3,12 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import {
-  addStudent, getStudents, saveStudents, toggleCertificate, ADMIN_PASSWORD, type Student,
+  addStudent, getStudents, deleteStudent, resetStartDate,
+  toggleCertificate, ADMIN_PASSWORD, type Student,
 } from "@/lib/auth";
 import { getWatchedCount } from "@/lib/watched";
 import {
-  getLessons, saveLessons, addLesson, updateLesson, deleteLesson,
+  getLessons, addLesson, updateLesson, deleteLesson,
   moveLessonUp, moveLessonDown, type Lesson,
 } from "@/lib/lessons";
 
@@ -17,7 +18,7 @@ export default function AdminPage() {
   const [auth, setAuth] = useState(false);
   const [adminPass, setAdminPass] = useState("");
   const [authError, setAuthError] = useState("");
-  const [tab, setTab] = useState<"lessons" | "students">("lessons");
+  const [tab, setTab] = useState<"lessons" | "students" | "security">("lessons");
 
   // --- Lessons state ---
   const [lessons, setLessons] = useState<Lesson[]>([]);
@@ -29,6 +30,7 @@ export default function AdminPage() {
 
   // --- Students state ---
   const [students, setStudents] = useState<Student[]>([]);
+  const [watchedCounts, setWatchedCounts] = useState<Record<string, number>>({});
   const [studentForm, setStudentForm] = useState({ name: "", email: "", password: "", startDate: "" });
   const [studentMsg, setStudentMsg] = useState("");
   const [visiblePasswords, setVisiblePasswords] = useState<Set<string>>(new Set());
@@ -43,8 +45,17 @@ export default function AdminPage() {
 
   useEffect(() => {
     if (auth) {
-      setLessons(getLessons());
-      setStudents(getStudents());
+      (async () => {
+        const [l, s] = await Promise.all([getLessons(), getStudents()]);
+        setLessons(l);
+        setStudents(s);
+        // Load watched counts for all students
+        const counts: Record<string, number> = {};
+        await Promise.all(s.map(async (st) => {
+          counts[st.email] = await getWatchedCount(st.email);
+        }));
+        setWatchedCounts(counts);
+      })();
     }
   }, [auth]);
 
@@ -84,7 +95,14 @@ export default function AdminPage() {
   }
 
   // ── Lesson helpers ──
-  function refreshLessons() { setLessons(getLessons()); }
+  async function refreshLessons() { setLessons(await getLessons()); }
+  async function refreshStudents() {
+    const s = await getStudents();
+    setStudents(s);
+    const counts: Record<string, number> = {};
+    await Promise.all(s.map(async (st) => { counts[st.email] = await getWatchedCount(st.email); }));
+    setWatchedCounts(counts);
+  }
 
   function startEdit(lesson: Lesson) {
     setEditingId(lesson.id);
@@ -92,59 +110,56 @@ export default function AdminPage() {
     setEditForm(rest);
   }
 
-  function saveEdit() {
+  async function saveEdit() {
     if (!editingId) return;
-    updateLesson(editingId, { ...editForm, day: Number(editForm.day) });
+    await updateLesson(editingId, { ...editForm, day: Number(editForm.day) });
     setEditingId(null);
-    refreshLessons();
+    await refreshLessons();
     flash(setLessonMsg, "Урок оновлено ✓");
   }
 
-  function handleAdd(e: React.FormEvent) {
+  async function handleAdd(e: React.FormEvent) {
     e.preventDefault();
-    addLesson({ ...addForm, day: Number(addForm.day) });
+    await addLesson({ ...addForm, day: Number(addForm.day) });
     setAddForm(EMPTY_LESSON);
     setShowAddForm(false);
-    refreshLessons();
+    await refreshLessons();
     flash(setLessonMsg, "Урок додано ✓");
   }
 
-  function handleDelete(id: string) {
+  async function handleDelete(id: string) {
     if (!confirm("Видалити урок?")) return;
-    deleteLesson(id);
-    refreshLessons();
+    await deleteLesson(id);
+    await refreshLessons();
   }
 
-  function handleMoveUp(id: string) { moveLessonUp(id); refreshLessons(); }
-  function handleMoveDown(id: string) { moveLessonDown(id); refreshLessons(); }
+  async function handleMoveUp(id: string) { await moveLessonUp(id); await refreshLessons(); }
+  async function handleMoveDown(id: string) { await moveLessonDown(id); await refreshLessons(); }
 
   // ── Student helpers ──
-  function handleAddStudent(e: React.FormEvent) {
+  async function handleAddStudent(e: React.FormEvent) {
     e.preventDefault();
-    addStudent({ ...studentForm });
-    setStudents(getStudents());
+    await addStudent({ ...studentForm });
+    await refreshStudents();
     setStudentForm({ name: "", email: "", password: "", startDate: "" });
     flash(setStudentMsg, `Студента ${studentForm.name} додано ✓`);
   }
 
-  function handleDeleteStudent(email: string) {
-    const updated = students.filter((s) => s.email !== email);
-    saveStudents(updated);
-    setStudents(updated);
+  async function handleDeleteStudent(email: string) {
+    await deleteStudent(email);
+    await refreshStudents();
   }
 
-  function handleToggleCertificate(email: string) {
-    toggleCertificate(email);
-    setStudents(getStudents());
+  async function handleToggleCertificate(email: string) {
+    const s = students.find((st) => st.email === email);
+    await toggleCertificate(email, !s?.certificateUnlocked);
+    await refreshStudents();
   }
 
-  function handleResetStartDate(email: string) {
+  async function handleResetStartDate(email: string) {
     const today = new Date().toISOString().slice(0, 10);
-    const updated = students.map((s) =>
-      s.email === email ? { ...s, startDate: today } : s
-    );
-    saveStudents(updated);
-    setStudents(updated);
+    await resetStartDate(email, today);
+    await refreshStudents();
     flash(setStudentMsg, `Дату старту скинуто на сьогодні (${today})`);
   }
 
@@ -165,19 +180,23 @@ export default function AdminPage() {
         </div>
 
         {/* Tabs */}
-        <div className="flex gap-2 mb-6">
-          {(["lessons", "students"] as const).map((t) => (
+        <div className="flex gap-2 mb-6 flex-wrap">
+          {([
+            { key: "lessons", label: `📹 Уроки (${lessons.length})` },
+            { key: "students", label: `👥 Студенти (${students.length})` },
+            { key: "security", label: "🔐 Безпека" },
+          ] as const).map((t) => (
             <button
-              key={t}
-              onClick={() => setTab(t)}
+              key={t.key}
+              onClick={() => setTab(t.key)}
               className="px-5 py-2 rounded-lg text-sm font-medium transition-all"
               style={{
-                backgroundColor: tab === t ? "#c9a84c" : "#1a1612",
-                color: tab === t ? "#0f0d0a" : "#a09080",
-                border: "1px solid " + (tab === t ? "#c9a84c" : "#2a2420"),
+                backgroundColor: tab === t.key ? "#c9a84c" : "#1a1612",
+                color: tab === t.key ? "#0f0d0a" : "#a09080",
+                border: "1px solid " + (tab === t.key ? "#c9a84c" : "#2a2420"),
               }}
             >
-              {t === "lessons" ? `📹 Уроки (${lessons.length})` : `👥 Студенти (${students.length})`}
+              {t.label}
             </button>
           ))}
         </div>
@@ -361,7 +380,7 @@ export default function AdminPage() {
                     </thead>
                     <tbody>
                       {students.map((s, i) => {
-                        const watchedCnt = getWatchedCount(s.email);
+                        const watchedCnt = watchedCounts[s.email] ?? 0;
                         const pct = lessons.length > 0 ? Math.round((watchedCnt / lessons.length) * 100) : 0;
                         const passVisible = visiblePasswords.has(s.email);
                         return (
@@ -437,6 +456,84 @@ export default function AdminPage() {
             </div>
           </div>
         )}
+        {/* ════════════ SECURITY TAB ════════════ */}
+        {tab === "security" && (
+          <div className="max-w-xl space-y-5">
+
+            {/* Current password */}
+            <div className="rounded-2xl overflow-hidden" style={{ border: "1px solid #2a2420" }}>
+              <div className="px-6 py-4" style={{ backgroundColor: "#1a1612", borderBottom: "1px solid #2a2420" }}>
+                <p className="text-xs uppercase tracking-widest" style={{ color: "#c9a84c" }}>Поточний пароль адміна</p>
+              </div>
+              <div className="px-6 py-5" style={{ backgroundColor: "#13110e" }}>
+                <div className="flex items-center gap-3 rounded-xl px-4 py-3"
+                  style={{ backgroundColor: "#1a1612", border: "1px solid #2a2420" }}>
+                  <span className="text-xs font-mono flex-1" style={{ color: "#a09080", letterSpacing: "0.15em" }}>
+                    {"•".repeat(Math.max(8, ADMIN_PASSWORD.length))}
+                  </span>
+                  <span className="text-xs px-2 py-0.5 rounded" style={{ backgroundColor: "rgba(201,168,76,0.1)", color: "#c9a84c", border: "1px solid rgba(201,168,76,0.2)" }}>
+                    .env.local
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            {/* How to change */}
+            <div className="rounded-2xl overflow-hidden" style={{ border: "1px solid #2a2420" }}>
+              <div className="px-6 py-4" style={{ backgroundColor: "#1a1612", borderBottom: "1px solid #2a2420" }}>
+                <p className="text-xs uppercase tracking-widest" style={{ color: "#c9a84c" }}>Як змінити пароль</p>
+              </div>
+              <div className="px-6 py-5 space-y-4" style={{ backgroundColor: "#13110e" }}>
+
+                <div className="flex items-start gap-3">
+                  <span className="w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0 mt-0.5"
+                    style={{ backgroundColor: "rgba(201,168,76,0.15)", color: "#c9a84c", border: "1px solid rgba(201,168,76,0.3)" }}>1</span>
+                  <div>
+                    <p className="text-sm mb-1" style={{ color: "#d4c9b8" }}>Відкрийте файл <code className="px-1.5 py-0.5 rounded text-xs" style={{ backgroundColor: "#1a1612", color: "#c9a84c", border: "1px solid #2a2420" }}>.env.local</code> у корені проєкту</p>
+                    <p className="text-xs" style={{ color: "#4a3a30" }}>Знаходиться поряд з <code style={{ color: "#6a5a50" }}>package.json</code></p>
+                  </div>
+                </div>
+
+                <div className="flex items-start gap-3">
+                  <span className="w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0 mt-0.5"
+                    style={{ backgroundColor: "rgba(201,168,76,0.15)", color: "#c9a84c", border: "1px solid rgba(201,168,76,0.3)" }}>2</span>
+                  <div className="flex-1">
+                    <p className="text-sm mb-2" style={{ color: "#d4c9b8" }}>Змініть значення змінної на новий пароль</p>
+                    <div className="rounded-xl px-4 py-3 font-mono text-xs" style={{ backgroundColor: "#0f0d0a", border: "1px solid #2a2420", color: "#a09080" }}>
+                      <span style={{ color: "#6a8a60" }}>NEXT_PUBLIC_ADMIN_PASSWORD</span>
+                      <span style={{ color: "#5a4a40" }}>=</span>
+                      <span style={{ color: "#c9a84c" }}>ВашНовийПароль</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="flex items-start gap-3">
+                  <span className="w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0 mt-0.5"
+                    style={{ backgroundColor: "rgba(201,168,76,0.15)", color: "#c9a84c", border: "1px solid rgba(201,168,76,0.3)" }}>3</span>
+                  <div>
+                    <p className="text-sm mb-1" style={{ color: "#d4c9b8" }}>Перезапустіть сервер</p>
+                    <div className="rounded-xl px-4 py-2.5 font-mono text-xs" style={{ backgroundColor: "#0f0d0a", border: "1px solid #2a2420", color: "#c9a84c" }}>
+                      npm run dev
+                    </div>
+                  </div>
+                </div>
+
+                {/* Warning */}
+                <div className="rounded-xl px-4 py-3 flex items-start gap-3 mt-2"
+                  style={{ backgroundColor: "rgba(201,168,76,0.04)", border: "1px solid rgba(201,168,76,0.15)" }}>
+                  <span style={{ color: "#c9a84c", fontSize: "14px" }}>⚠</span>
+                  <p className="text-xs leading-relaxed" style={{ color: "#7a6a50" }}>
+                    Файл <code style={{ color: "#c9a84c" }}>.env.local</code> не потрапляє в git і не публікується.
+                    Пароль зберігається лише на вашому сервері — стороннього доступу немає.
+                  </p>
+                </div>
+
+              </div>
+            </div>
+
+          </div>
+        )}
+
       </div>
     </main>
   );

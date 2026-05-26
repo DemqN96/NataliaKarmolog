@@ -35,7 +35,7 @@ export default function LandingPage() {
           style={{ background: "radial-gradient(ellipse at 70% 40%, rgba(201,168,76,0.13) 0%, transparent 60%)" }} />
         <GoldParticles />
 
-        <div className="max-w-6xl mx-auto px-6 py-24 w-full grid md:grid-cols-2 gap-12 items-center">
+        <div className="max-w-7xl mx-auto px-6 py-24 w-full grid md:grid-cols-[2fr_3fr] gap-12 items-center">
           <div className="order-2 md:order-1">
             <FadeIn delay={0.1}>
               <span className="inline-block text-xs uppercase tracking-[0.3em] px-4 py-1.5 rounded-full mb-6"
@@ -85,12 +85,12 @@ export default function LandingPage() {
 
           <FadeIn delay={0.25} direction="left" className="order-1 md:order-2 flex justify-center">
             <div className="relative">
-              <div className="absolute -inset-6 rounded-3xl opacity-25 blur-2xl"
+              <div className="absolute -inset-10 rounded-3xl opacity-20 blur-3xl"
                 style={{ background: "radial-gradient(circle, #c9a84c, transparent 70%)" }} />
               <PhotoCard
                 src="/natalia-cover.jpg"
                 alt="Наталія Войтович"
-                className="relative w-72 h-[26rem] md:w-80 md:h-[32rem] rounded-3xl"
+                className="relative w-72 h-[28rem] md:w-[28.5rem] md:h-[33rem] rounded-3xl"
                 style={{ border: "1px solid rgba(201,168,76,0.25)", boxShadow: "0 30px 80px rgba(0,0,0,0.6)" }}
               />
               {/* Badge */}

@@ -6,7 +6,6 @@ import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 import { getSession, hasCertificateAccess, type Student } from "@/lib/auth";
 import { getLessons } from "@/lib/lessons";
-import { getWatchedCount } from "@/lib/watched";
 
 const CONFETTI_COUNT = 60;
 
@@ -73,16 +72,16 @@ export default function CompletePage() {
   useEffect(() => {
     const session = getSession();
     if (!session) { router.replace("/login"); return; }
-    const lessons = getLessons();
-    const wCount = getWatchedCount(session.email);
-    // allow access only if admin granted certificate
-    if (!hasCertificateAccess(session.email)) {
-      router.replace("/profile");
-      return;
-    }
-    setStudent(session);
-    setLessonCount(lessons.length);
-    setTimeout(() => setShow(true), 100);
+    (async () => {
+      const [lessons, certAccess] = await Promise.all([
+        getLessons(),
+        hasCertificateAccess(session.email),
+      ]);
+      if (!certAccess) { router.replace("/profile"); return; }
+      setStudent(session);
+      setLessonCount(lessons.length);
+      setTimeout(() => setShow(true), 100);
+    })();
   }, [router]);
 
   const completionDate = new Date().toLocaleDateString("uk-UA", {
