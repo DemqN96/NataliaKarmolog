@@ -296,9 +296,7 @@ export default function LandingPage() {
                   {[
                     "Всі уроки та матеріали (13 блоків)",
                     "Закритий кабінет з відео",
-                    "Нотатник з автозбереженням",
-                    "Сертифікат після завершення",
-                    "Доступ назавжди",
+                    "Доступ на 6 місяців",
                   ].map((item) => (
                     <li key={item} className="flex items-start gap-3">
                       <svg className="flex-shrink-0 mt-0.5" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#6a5a50" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
@@ -358,8 +356,6 @@ export default function LandingPage() {
                     {[
                       { text: "Всі уроки та матеріали (13 блоків)", plus: false },
                       { text: "Закритий кабінет з відео", plus: false },
-                      { text: "Нотатник з автозбереженням", plus: false },
-                      { text: "Сертифікат після завершення", plus: false },
                       { text: "Доступ назавжди", plus: false },
                       { text: "Жива online зустріч — мастермайнд", plus: true },
                       { text: "Чат з учасниками курсу", plus: true },
