@@ -117,6 +117,7 @@ async function seedLessons() {
       block: "БЛОК 5",
       description: "Як мислення впливає на достаток. Самооцінка та впевненість в собі. Візуалізація, маніфестація та афірмації. Практика «Маніфестація бажань». Медитація самоцінність.",
       youtube_id: "E7KZS2HLHD0", duration: "40–60 хв",
+      audio_url: "/api/audio?id=1wc0rjXvyg1kYOeVshFwCOCpk9tHRQOPo",
       homework: "Напишіть 10 речень: «Я живу в достатку, тому що…». Не думайте — пишіть одразу. Перечитайте вголос. Запишіть свої 3 головні цілі — фінансові та особисті.",
     },
     {
@@ -154,18 +155,20 @@ async function seedLessons() {
   ];
 
   for (const l of defaults) {
+    const audioUrl = (l as { audio_url?: string }).audio_url ?? null;
     await sql`
       INSERT INTO lessons (id, day, sort_order, title, block, description, youtube_id, duration, audio_url, homework)
-      VALUES (${l.id}, ${l.day}, ${l.sort_order}, ${l.title}, ${l.block}, ${l.description}, ${l.youtube_id}, ${l.duration}, ${null}, ${l.homework})
+      VALUES (${l.id}, ${l.day}, ${l.sort_order}, ${l.title}, ${l.block}, ${l.description}, ${l.youtube_id}, ${l.duration}, ${audioUrl}, ${l.homework})
       ON CONFLICT (id) DO UPDATE SET
-        day        = EXCLUDED.day,
-        sort_order = EXCLUDED.sort_order,
-        title      = EXCLUDED.title,
-        block      = EXCLUDED.block,
+        day         = EXCLUDED.day,
+        sort_order  = EXCLUDED.sort_order,
+        title       = EXCLUDED.title,
+        block       = EXCLUDED.block,
         description = EXCLUDED.description,
-        youtube_id = EXCLUDED.youtube_id,
-        duration   = EXCLUDED.duration,
-        homework   = EXCLUDED.homework
+        youtube_id  = EXCLUDED.youtube_id,
+        duration    = EXCLUDED.duration,
+        audio_url   = COALESCE(lessons.audio_url, EXCLUDED.audio_url),
+        homework    = EXCLUDED.homework
     `;
   }
 }
