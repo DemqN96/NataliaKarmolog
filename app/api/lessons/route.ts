@@ -12,6 +12,7 @@ function row2lesson(r: Record<string, unknown>) {
     youtubeId: r.youtube_id as string,
     duration: r.duration as string,
     audioUrl: (r.audio_url as string) || undefined,
+    audioUrl2: (r.audio_url_2 as string) || undefined,
     homework: (r.homework as string) || undefined,
   };
 }
@@ -29,13 +30,13 @@ export async function POST(req: NextRequest) {
   const body = await req.json();
 
   if (body.action === "add") {
-    const { day, title, block, description, youtubeId, duration, audioUrl, homework } = body;
+    const { day, title, block, description, youtubeId, duration, audioUrl, audioUrl2, homework } = body;
     const id = Date.now().toString();
     const maxOrder = await sql`SELECT COALESCE(MAX(sort_order), -1) AS m FROM lessons`;
     const sortOrder = Number(maxOrder[0].m) + 1;
     await sql`
-      INSERT INTO lessons (id, day, sort_order, title, block, description, youtube_id, duration, audio_url, homework)
-      VALUES (${id}, ${day ?? 0}, ${sortOrder}, ${title}, ${block}, ${description ?? ''}, ${youtubeId ?? ''}, ${duration ?? ''}, ${audioUrl || null}, ${homework || null})
+      INSERT INTO lessons (id, day, sort_order, title, block, description, youtube_id, duration, audio_url, audio_url_2, homework)
+      VALUES (${id}, ${day ?? 0}, ${sortOrder}, ${title}, ${block}, ${description ?? ''}, ${youtubeId ?? ''}, ${duration ?? ''}, ${audioUrl || null}, ${audioUrl2 || null}, ${homework || null})
     `;
     return NextResponse.json({ ok: true, id });
   }
@@ -62,7 +63,7 @@ export async function POST(req: NextRequest) {
 // PUT /api/lessons — update lesson
 export async function PUT(req: NextRequest) {
   await initDB();
-  const { id, day, title, block, description, youtubeId, duration, audioUrl, homework } = await req.json();
+  const { id, day, title, block, description, youtubeId, duration, audioUrl, audioUrl2, homework } = await req.json();
   await sql`
     UPDATE lessons SET
       day         = ${day ?? 0},
@@ -72,6 +73,7 @@ export async function PUT(req: NextRequest) {
       youtube_id  = ${youtubeId ?? ''},
       duration    = ${duration ?? ''},
       audio_url   = ${audioUrl || null},
+      audio_url_2 = ${audioUrl2 || null},
       homework    = ${homework || null}
     WHERE id = ${id}
   `;

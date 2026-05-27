@@ -12,7 +12,7 @@ import {
   moveLessonUp, moveLessonDown, type Lesson,
 } from "@/lib/lessons";
 
-const EMPTY_LESSON = { title: "", block: "", description: "", youtubeId: "", duration: "", day: 0, audioUrl: "", homework: "" };
+const EMPTY_LESSON = { title: "", block: "", description: "", youtubeId: "", duration: "", day: 0, audioUrl: "", audioUrl2: "", homework: "" };
 
 export default function AdminPage() {
   const [auth, setAuth] = useState(false);
@@ -554,11 +554,12 @@ function LessonFormFields({
     { key: "day", label: "Відкривається на день №", type: "number", placeholder: "0" },
     { key: "duration", label: "Тривалість", type: "text", placeholder: "40–60 хв" },
     { key: "description", label: "Опис", type: "text", placeholder: "Короткий опис уроку..." },
-    { key: "audioUrl", label: "Аудіо (пряме посилання на mp3/m4a)", type: "url", placeholder: "https://..." },
+    { key: "audioUrl", label: "Аудіо 1 (посилання на mp3 або /api/audio?id=...)", type: "url", placeholder: "/api/audio?id=..." },
+    { key: "audioUrl2", label: "Аудіо 2 (необов'язково)", type: "url", placeholder: "/api/audio?id=..." },
     { key: "homework", label: "Завдання до уроку", type: "textarea", placeholder: "Напишіть завдання для учасників курсу…" },
   ];
 
-  const fullWidthKeys = ["description", "audioUrl", "homework"];
+  const fullWidthKeys = ["description", "audioUrl", "audioUrl2", "homework"];
 
   return (
     <div className="grid md:grid-cols-2 gap-3">

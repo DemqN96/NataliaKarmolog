@@ -27,7 +27,7 @@ export default function LessonPage() {
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
-  // Audio state
+  // Audio state (player 1)
   const audioRef = useRef<HTMLAudioElement>(null);
   const [isPlaying, setIsPlaying] = useState(false);
   const [currentTime, setCurrentTime] = useState(0);
@@ -35,6 +35,13 @@ export default function LessonPage() {
   const [volume, setVolume] = useState(1);
   const [speed, setSpeed] = useState<1 | 1.5 | 2>(1);
   const [audioError, setAudioError] = useState(false);
+
+  // Audio state (player 2)
+  const audioRef2 = useRef<HTMLAudioElement>(null);
+  const [isPlaying2, setIsPlaying2] = useState(false);
+  const [currentTime2, setCurrentTime2] = useState(0);
+  const [duration2, setDuration2] = useState(0);
+  const [audioError2, setAudioError2] = useState(false);
 
   // Watched state
   const [watched, setWatched] = useState(false);
@@ -114,6 +121,13 @@ export default function LessonPage() {
     const next = speed === 1 ? 1.5 : speed === 1.5 ? 2 : 1;
     setSpeed(next);
     if (audioRef.current) audioRef.current.playbackRate = next;
+  };
+
+  const togglePlay2 = () => {
+    const audio = audioRef2.current;
+    if (!audio) return;
+    if (isPlaying2) { audio.pause(); } else { audio.play(); }
+    setIsPlaying2(!isPlaying2);
   };
 
   const handleSeek = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -473,6 +487,71 @@ export default function LessonPage() {
                   {speed}x
                 </motion.span>
               </button>
+            </div>
+          </motion.div>
+        )}
+
+        {/* ── Audio Player 2 ── */}
+        {lesson.audioUrl2 && !audioError2 && (
+          <motion.div
+            className="rounded-2xl p-6 mb-8"
+            style={{ backgroundColor: "#1a1612", border: "1px solid rgba(201,168,76,0.2)" }}
+            initial={{ opacity: 0, y: 16 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.5 }}
+          >
+            <div className="flex items-center gap-3 mb-5">
+              <div className="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0"
+                style={{ backgroundColor: "rgba(201,168,76,0.1)", border: "1px solid rgba(201,168,76,0.3)" }}>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="#c9a84c">
+                  <path d="M12 3v10.55c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z"/>
+                </svg>
+              </div>
+              <div>
+                <p className="text-xs uppercase tracking-widest" style={{ color: "#c9a84c" }}>Аудіо 2 до уроку</p>
+                <p className="text-xs mt-0.5" style={{ color: "#4a3a30" }}>Слухайте де зручно — в дорозі, вдома</p>
+              </div>
+            </div>
+            <audio
+              ref={audioRef2}
+              src={lesson.audioUrl2}
+              onTimeUpdate={() => setCurrentTime2(audioRef2.current?.currentTime ?? 0)}
+              onLoadedMetadata={() => setDuration2(audioRef2.current?.duration ?? 0)}
+              onEnded={() => setIsPlaying2(false)}
+              onError={() => setAudioError2(true)}
+            />
+            <div className="flex items-center gap-4">
+              <button
+                onClick={togglePlay2}
+                className="w-12 h-12 rounded-full flex items-center justify-center flex-shrink-0 transition-transform active:scale-95"
+                style={{ backgroundColor: "#c9a84c", boxShadow: "0 4px 20px rgba(201,168,76,0.3)" }}
+              >
+                {isPlaying2 ? (
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="#0f0d0a">
+                    <rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/>
+                  </svg>
+                ) : (
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="#0f0d0a">
+                    <polygon points="5,3 19,12 5,21"/>
+                  </svg>
+                )}
+              </button>
+              <div className="flex-1 min-w-0">
+                <input
+                  type="range" min={0} max={duration2 || 100} value={currentTime2}
+                  onChange={(e) => {
+                    const val = Number(e.target.value);
+                    if (audioRef2.current) audioRef2.current.currentTime = val;
+                    setCurrentTime2(val);
+                  }}
+                  className="w-full h-1 rounded-full outline-none cursor-pointer"
+                  style={{ accentColor: "#c9a84c" }}
+                />
+                <div className="flex justify-between mt-1.5">
+                  <span className="text-xs" style={{ color: "#6a5a50" }}>{formatTime(currentTime2)}</span>
+                  <span className="text-xs" style={{ color: "#6a5a50" }}>{formatTime(duration2)}</span>
+                </div>
+              </div>
             </div>
           </motion.div>
         )}

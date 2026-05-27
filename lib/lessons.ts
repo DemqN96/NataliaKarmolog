@@ -7,6 +7,7 @@ export interface Lesson {
   youtubeId: string;
   duration: string;
   audioUrl?: string;
+  audioUrl2?: string;
   homework?: string;
 }
 

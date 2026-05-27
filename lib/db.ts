@@ -26,8 +26,13 @@ export async function initDB() {
       youtube_id  TEXT NOT NULL DEFAULT '',
       duration    TEXT NOT NULL DEFAULT '',
       audio_url   TEXT,
+      audio_url_2 TEXT,
       homework    TEXT
     )
+  `;
+  // Add audio_url_2 column if it doesn't exist yet (migration for existing DBs)
+  await sql`
+    ALTER TABLE lessons ADD COLUMN IF NOT EXISTS audio_url_2 TEXT
   `;
 
   await sql`
@@ -156,9 +161,10 @@ async function seedLessons() {
 
   for (const l of defaults) {
     const audioUrl = (l as { audio_url?: string }).audio_url ?? null;
+    const audioUrl2 = (l as { audio_url_2?: string }).audio_url_2 ?? null;
     await sql`
-      INSERT INTO lessons (id, day, sort_order, title, block, description, youtube_id, duration, audio_url, homework)
-      VALUES (${l.id}, ${l.day}, ${l.sort_order}, ${l.title}, ${l.block}, ${l.description}, ${l.youtube_id}, ${l.duration}, ${audioUrl}, ${l.homework})
+      INSERT INTO lessons (id, day, sort_order, title, block, description, youtube_id, duration, audio_url, audio_url_2, homework)
+      VALUES (${l.id}, ${l.day}, ${l.sort_order}, ${l.title}, ${l.block}, ${l.description}, ${l.youtube_id}, ${l.duration}, ${audioUrl}, ${audioUrl2}, ${l.homework})
       ON CONFLICT (id) DO UPDATE SET
         day         = EXCLUDED.day,
         sort_order  = EXCLUDED.sort_order,
@@ -168,6 +174,7 @@ async function seedLessons() {
         youtube_id  = EXCLUDED.youtube_id,
         duration    = EXCLUDED.duration,
         audio_url   = COALESCE(lessons.audio_url, EXCLUDED.audio_url),
+        audio_url_2 = COALESCE(lessons.audio_url_2, EXCLUDED.audio_url_2),
         homework    = EXCLUDED.homework
     `;
   }
