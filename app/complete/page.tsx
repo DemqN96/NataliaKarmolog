@@ -5,7 +5,6 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 import { getSession, hasCertificateAccess, type Student } from "@/lib/auth";
-import { getLessons } from "@/lib/lessons";
 
 const CONFETTI_COUNT = 60;
 
@@ -65,7 +64,6 @@ function Confetti() {
 export default function CompletePage() {
   const router = useRouter();
   const [student, setStudent] = useState<Student | null>(null);
-  const [lessonCount, setLessonCount] = useState(0);
   const [show, setShow] = useState(false);
   const printRef = useRef<HTMLDivElement>(null);
 
@@ -73,13 +71,9 @@ export default function CompletePage() {
     const session = getSession();
     if (!session) { router.replace("/login"); return; }
     (async () => {
-      const [lessons, certAccess] = await Promise.all([
-        getLessons(),
-        hasCertificateAccess(session.email),
-      ]);
+      const certAccess = await hasCertificateAccess(session.email);
       if (!certAccess) { router.replace("/profile"); return; }
       setStudent(session);
-      setLessonCount(lessons.length);
       setTimeout(() => setShow(true), 100);
     })();
   }, [router]);
@@ -185,21 +179,11 @@ export default function CompletePage() {
                 Автор: Войтович Наталія · Кармолог
               </p>
 
-              {/* Stats */}
-              <div className="flex justify-center gap-8 mb-6">
-                <div className="text-center">
-                  <p className="text-2xl font-bold" style={{ color: "#c9a84c", fontFamily: "var(--font-playfair)" }}>{lessonCount}</p>
-                  <p className="text-xs" style={{ color: "#4a3a30" }}>уроків</p>
-                </div>
-                <div className="w-px" style={{ backgroundColor: "#2a2420" }} />
-                <div className="text-center">
-                  <p className="text-2xl font-bold" style={{ color: "#c9a84c", fontFamily: "var(--font-playfair)" }}>100%</p>
-                  <p className="text-xs" style={{ color: "#4a3a30" }}>прогрес</p>
-                </div>
-                <div className="w-px" style={{ backgroundColor: "#2a2420" }} />
+              {/* Date */}
+              <div className="flex justify-center mb-6">
                 <div className="text-center">
                   <p className="text-sm font-bold" style={{ color: "#c9a84c", fontFamily: "var(--font-playfair)" }}>{completionDate}</p>
-                  <p className="text-xs" style={{ color: "#4a3a30" }}>дата</p>
+                  <p className="text-xs" style={{ color: "#4a3a30" }}>дата завершення</p>
                 </div>
               </div>
 
