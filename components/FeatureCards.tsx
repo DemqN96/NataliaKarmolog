@@ -54,9 +54,6 @@ export default function FeatureCards() {
           transition={{ duration: 0.2 }}
         >
           <div className="mb-5" style={{ width: "2rem", height: "2px", backgroundColor: "#c9a84c", borderRadius: "1px" }} />
-          <h3 className="font-bold mb-2 text-base" style={{ color: "#f5f0e8", fontFamily: "var(--font-playfair)" }}>
-            {f.title}
-          </h3>
           <p className="text-sm leading-relaxed" style={{ color: "#7a6a60" }}>{f.desc}</p>
         </motion.div>
       ))}
