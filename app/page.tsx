@@ -8,8 +8,8 @@ import FaqSection from "@/components/FaqSection";
 import CountUpBadge from "@/components/CountUp";
 import Testimonials from "@/components/Testimonials";
 
-const PAYMENT_URL =
-  "https://secure.wayforpay.com/payment/sdf85981b9e62?utm_source=ig&utm_medium=social&utm_content=link_in_bio&fbclid=PAZXh0bgNhZW0CMTEAc3J0YwZhcHBfaWQPOTM2NjE5NzQzMzkyNDU5AAGnlZxmORhJR3MGoc36sFiIv8O_Mz1CV2qzCNgFV_CFUkw8M-ZIY3QHSiEwGI4_aem_MC1ptsSCKkq7GHuXuDyKUw";
+const PAYMENT_URL = "https://secure.wayforpay.com/payment/s7f234c557cbf";
+const PLUS_URL = "https://docs.google.com/forms/d/e/1FAIpQLSc9l65on3VLkC2FuESDFio7fFMqNdA8xYsEYIJlGBHh49e4TQ/viewform";
 
 export default function LandingPage() {
   return (
@@ -310,7 +310,7 @@ export default function LandingPage() {
                 <a href={PAYMENT_URL} target="_blank" rel="noopener noreferrer">
                   <button className="w-full py-4 rounded-xl text-sm font-semibold transition-all hover:opacity-80"
                     style={{ backgroundColor: "#201a0a", border: "1px solid rgba(201,168,76,0.3)", color: "#c9a84c" }}>
-                    Придбати →
+                    Придбати в записі
                   </button>
                 </a>
               </div>
@@ -373,9 +373,9 @@ export default function LandingPage() {
                     ))}
                   </ul>
 
-                  <a href={PAYMENT_URL} target="_blank" rel="noopener noreferrer">
+                  <a href={PLUS_URL} target="_blank" rel="noopener noreferrer">
                     <button className="btn-gold w-full text-base py-4">
-                      Придбати PLUS →
+                      Заповнити анкету передзапису →
                     </button>
                   </a>
                   <p className="text-xs mt-3 text-center" style={{ color: "#3a2a20" }}>
